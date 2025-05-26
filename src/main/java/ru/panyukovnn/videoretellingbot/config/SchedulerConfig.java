@@ -3,8 +3,6 @@ package ru.panyukovnn.videoretellingbot.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -36,11 +34,22 @@ public class SchedulerConfig {
     }
 
     @Bean
-    public Scheduler dbScheduler() {
-        return Schedulers.newBoundedElastic(10, 1000, "db-bounded-elastic");
+    public ExecutorService tgMessageExtractorScheduler() {
+        return createElasticScheduler(10, 100);
     }
 
     private static ThreadPoolExecutor createDiscardPolicySingleThreadExecutor() {
         return new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<>(1), new ThreadPoolExecutor.DiscardPolicy());
+    }
+
+    private static ThreadPoolExecutor createElasticScheduler(int threadsNumber, int queueCapacity) {
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+            threadsNumber, threadsNumber,
+            60, TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(queueCapacity), new ThreadPoolExecutor.CallerRunsPolicy());
+
+        threadPoolExecutor.allowCoreThreadTimeOut(true);
+
+        return threadPoolExecutor;
     }
 }

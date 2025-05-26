@@ -57,11 +57,15 @@ retelling:
       retelling-prompt: ${JAVA_HABR_RETELLING_PROMPT}
       publishing-topic-id: ${JAVA_RETELLING_TG_TOPIC_ID}
     tg-message-batch:
-      rate-material-prompt: null
       retelling-prompt: ${TG_MESSAGE_BATCH_RETELLING_PROMPT}
       publishing-topic-id: ${TG_MESSAGE_BATCH_RETELLING_TG_TOPIC_ID}
   prompt:
     bot-retelling-prompt: ${BOT_RETELLING_PROMPT}
+
+  integration:
+    tg-chats-collector:
+      host: ${INTEGRATION_TG_CHATS_COLLECTOR_HOST}
+
 
 bot:
   name: ${BOT_NAME}
