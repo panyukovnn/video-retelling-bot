@@ -30,3 +30,7 @@ retelling:
       publishing-topic-id: 6
   prompt:
     bot-retelling-prompt: prompt
+
+  integration:
+    tg-chats-collector:
+      host: http://localhost # TODO wiremock

@@ -32,3 +32,6 @@ databaseChangeLog:
   - include:
       file: 09.update_retellings.yml
       relativeToChangelogFile: true
+  - include:
+      file: 10.create_prompts.yml
+      relativeToChangelogFile: true

@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - changeSet:
+      id: "10.create_prompts.yml"
+      author: "Panyukov NN"
+      changes:
+        - createTable:
+            tableName: prompts
+            remarks: "Промты"
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: map_prompt
+                  type: varchar
+                  remarks: "Промт преобразования контента"
+              - column:
+                  name: reduce_prompt
+                  type: varchar
+                  remarks: "Промт агрегации, после применения mapPrompt к контенту"
+              - column:
+                  name: create_time
+                  type: timestamp
+                  remarks: "Время создания"
+              - column:
+                  name: create_user
+                  type: varchar
+                  remarks: "Пользователь, который создал запись"
+              - column:
+                  name: last_update_time
+                  type: timestamp
+                  remarks: "Время последнего изменения"
+              - column:
+                  name: last_update_user
+                  type: varchar
+                  remarks: "Пользователь, который последним внес изменения"
