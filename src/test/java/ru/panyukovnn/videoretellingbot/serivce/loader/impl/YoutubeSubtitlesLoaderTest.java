@@ -163,8 +163,8 @@ class YoutubeSubtitlesLoaderTest {
         );
         
         assertAll(
-            () -> assertEquals("e716", exception.getId()),
-            () -> assertEquals("Не удалось извлечь субтитры из видео. Для указанного видео отсутствуют субтитры", exception.getMessage())
+            () -> assertEquals("48ae", exception.getId()),
+            () -> assertEquals("Для указанного видео отсутствуют субтитры", exception.getMessage())
         );
     }
 
@@ -190,7 +190,7 @@ class YoutubeSubtitlesLoaderTest {
         );
         
         assertAll(
-            () -> assertEquals("e716", exception.getId()),
+            () -> assertEquals("45bb", exception.getId()),
             () -> assertTrue(exception.getMessage().contains("Ошибка выгрузки субтитров с помощью yt-dlp, exitCode: 1"))
         );
     }

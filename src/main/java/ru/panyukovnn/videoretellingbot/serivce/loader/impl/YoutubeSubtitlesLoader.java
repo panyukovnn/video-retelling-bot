@@ -108,8 +108,8 @@ public class YoutubeSubtitlesLoader implements DataLoader {
                 })
                 .get();
         } catch (ExecutionException | InterruptedException e) {
-            if (e.getCause() instanceof RetellingException) {
-                throw new RetellingException("a7e9", e.getCause().getMessage(), e);
+            if (e.getCause() instanceof RetellingException re) {
+                throw re;
             }
 
             log.error("Ошибка выгрузки файлов субтитров: {}", e.getMessage(), e);
