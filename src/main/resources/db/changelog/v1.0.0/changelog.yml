@@ -35,3 +35,6 @@ databaseChangeLog:
   - include:
       file: 10.create_prompts.yml
       relativeToChangelogFile: true
+  - include:
+      file: 11.create_publishing_channels.yml
+      relativeToChangelogFile: true

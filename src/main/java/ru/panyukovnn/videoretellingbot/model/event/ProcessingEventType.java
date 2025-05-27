@@ -26,5 +26,9 @@ public enum ProcessingEventType {
     /**
      * Ошибка публикации, терминальный статус
      */
-    PUBLICATION_ERROR
+    PUBLICATION_ERROR,
+    /**
+     * Шаг преобразования
+     */
+    MAP
 }

@@ -12,9 +12,10 @@ public class ChatHistoryResponse {
 
     private Long chatId;
     private String chatPublicName;
+    private String chatTitle;
     private String topicName;
     private LocalDateTime firstMessageDateTime;
     private LocalDateTime lastMessageDateTime;
     private Integer totalCount;
-    private List<MessagesBatch> messages;
+    private List<MessagesBatch> messageBatches;
 }

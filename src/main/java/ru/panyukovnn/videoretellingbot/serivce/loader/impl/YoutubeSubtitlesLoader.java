@@ -65,9 +65,7 @@ public class YoutubeSubtitlesLoader implements DataLoader {
                 .content(subtitles)
                 .build();
         } catch (RetellingException e) {
-            log.warn("Ошибка загрузки субтитров из видео: {}", e.getMessage(), e);
-
-            throw new RetellingException("e716", "Не удалось извлечь субтитры из видео. " + e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
             log.error("Ошибка загрузки субтитров из видео: {}", e.getMessage(), e);
 
