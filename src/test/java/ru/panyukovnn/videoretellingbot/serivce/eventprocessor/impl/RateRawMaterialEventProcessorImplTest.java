@@ -69,7 +69,7 @@ class RateRawMaterialEventProcessorImplTest {
 
         when(contentRepository.findById(contentId)).thenReturn(Optional.of(content));
         when(conveyorTagProperties.getWithGuarantee(ConveyorTag.JAVA_HABR)).thenReturn(conveyorTagConfig);
-        when(openAiClient.retellingBlockingCall(anyString(), anyString(), anyString()))
+        when(openAiClient.promptingCall(anyString(), anyString(), anyString()))
             .thenReturn("75 - Good content");
         when(rateProperties.getThreshold()).thenReturn(50);
         when(contentRateRepository.save(any(ContentRate.class))).thenAnswer(i -> i.getArgument(0));
@@ -81,7 +81,7 @@ class RateRawMaterialEventProcessorImplTest {
 
         // Assert
         verify(contentRepository).findById(contentId);
-        verify(openAiClient).retellingBlockingCall("rate_material", "Rate prompt", "Test Content");
+        verify(openAiClient).promptingCall("rate_material", "Rate prompt", "Test Content");
         verify(contentRateRepository).save(argThat(rate ->
             rate.getContentId().equals(contentId) &&
             rate.getRate() == 75 &&
@@ -113,7 +113,7 @@ class RateRawMaterialEventProcessorImplTest {
 
         when(contentRepository.findById(contentId)).thenReturn(Optional.of(content));
         when(conveyorTagProperties.getWithGuarantee(ConveyorTag.JAVA_HABR)).thenReturn(conveyorTagConfig);
-        when(openAiClient.retellingBlockingCall(anyString(), anyString(), anyString()))
+        when(openAiClient.promptingCall(anyString(), anyString(), anyString()))
             .thenReturn("35 - Poor content");
         when(rateProperties.getThreshold()).thenReturn(50);
         when(contentRateRepository.save(any(ContentRate.class))).thenAnswer(i -> i.getArgument(0));
@@ -146,7 +146,7 @@ class RateRawMaterialEventProcessorImplTest {
 
         when(contentRepository.findById(contentId)).thenReturn(Optional.of(content));
         when(conveyorTagProperties.getWithGuarantee(ConveyorTag.JAVA_HABR)).thenReturn(conveyorTagConfig);
-        when(openAiClient.retellingBlockingCall(anyString(), anyString(), anyString()))
+        when(openAiClient.promptingCall(anyString(), anyString(), anyString()))
             .thenReturn("Invalid rate format");
 
         // Act & Assert

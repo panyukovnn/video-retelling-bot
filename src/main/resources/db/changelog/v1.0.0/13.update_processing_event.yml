@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: "13.update_processing_event.yml"
+      author: "Panyukov NN"
+      changes:
+        - addColumn:
+            tableName: processing_events
+            columns:
+              - column:
+                  name: prompt_id
+                  type: uuid
+                  remarks: "Идентификатор промта"
+              - column:
+                  name: content_batch_id
+                  type: uuid
+                  remarks: "Идентификатор группы контента"
+              - column:
+                  name: publishing_channel_id
+                  type: uuid
+                  remarks: "Идентификатор канала отправки"

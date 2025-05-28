@@ -17,7 +17,12 @@ public enum ConveyorType {
      * RATE_RAW_MATERIAL -> RETELLING -> PUBLISH_RETELLING -> PUBLISHED
      *                      UNDERRATED -> x                   PUBLICATION_ERROR
      */
-    RATING_AND_RETELLING(ProcessingEventType.RATE_RAW_MATERIAL);
+    RATING_AND_RETELLING(ProcessingEventType.RATE_RAW_MATERIAL),
+    /**
+     * MAP -> PUBLISHED
+     *        PUBLICATION_ERROR
+     */
+    MAP(ProcessingEventType.MAP);
 
     private final ProcessingEventType startEventType;
 }

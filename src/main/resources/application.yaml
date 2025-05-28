@@ -40,7 +40,7 @@ retelling:
     source-parsing:
       habr-cron: 0 0 * * * *
     event-processing:
-      cron: 0 * * * * *
+      cron: "*/10 * * * * *"
   publishing:
     chat-id: ${PUBLISHING_CHAT_ID}
     rate-tg-topic-id: ${RATE_TG_TOPIC_ID}

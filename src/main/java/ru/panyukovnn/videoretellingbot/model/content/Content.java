@@ -63,6 +63,10 @@ public class Content extends AuditableEntity {
      * Содержимое источника
      */
     private String content;
+    /**
+     * Идентификатор группы контента
+     */
+    private UUID batchId;
 
     @Override
     public boolean equals(Object o) {

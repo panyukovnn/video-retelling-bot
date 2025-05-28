@@ -42,7 +42,7 @@ public class RetellingEventProcessorImpl implements EventProcessor {
 
         log.info("Успешно определен prompt по тегу: {}. Для материала: {}", tag, content.getTitle());
 
-        String retellingResponse = openAiClient.retellingBlockingCall(processingEvent.getType().name(), prompt, content.getContent());
+        String retellingResponse = openAiClient.promptingCall(processingEvent.getType().name(), prompt, content.getContent());
 
         Retelling retelling = retellingRepository.save(Retelling.builder()
             .contentId(content.getId())

@@ -15,7 +15,7 @@ public class OpenAiClient {
 
     private final OpenAiChatModel chatModel;
 
-    public String retellingBlockingCall(String requestType, String prompt, String contentToRetell) {
+    public String promptingCall(String requestType, String prompt, String contentToRetell) {
         return blockingCall(requestType, prompt, contentToRetell);
     }
 

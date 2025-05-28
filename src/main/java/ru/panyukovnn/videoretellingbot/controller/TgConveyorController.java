@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.panyukovnn.videoretellingbot.dto.TgConveyorRequest;
 import ru.panyukovnn.videoretellingbot.dto.common.CommonRequest;
 import ru.panyukovnn.videoretellingbot.dto.common.CommonResponse;
+import ru.panyukovnn.videoretellingbot.serivce.tgchatscollector.TgChatsCollectorHandler;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -21,10 +22,12 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class TgConveyorController {
 
+    private final TgChatsCollectorHandler tgChatsCollectorHandler;
+
     @Async("tgMessageExtractorScheduler")
     @PostMapping("/processChat")
     public CompletableFuture<CommonResponse<Void>> processChat(@RequestBody @Valid CommonRequest<TgConveyorRequest> commonRequest) {
-
+        tgChatsCollectorHandler.handleChatMessages(commonRequest.getBody());
 
         return CompletableFuture.completedFuture(new CommonResponse<>());
     }

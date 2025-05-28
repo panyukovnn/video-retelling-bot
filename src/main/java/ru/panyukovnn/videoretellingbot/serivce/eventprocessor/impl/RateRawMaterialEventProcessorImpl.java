@@ -60,7 +60,7 @@ public class RateRawMaterialEventProcessorImpl implements EventProcessor {
             return;
         }
 
-        String retellingResponse = openAiClient.retellingBlockingCall("rate_material", prompt, content.getContent());
+        String retellingResponse = openAiClient.promptingCall("rate_material", prompt, content.getContent());
 
         StringBuilder rawRate = new StringBuilder();
         for (int i = 0; i < 7; i++) {

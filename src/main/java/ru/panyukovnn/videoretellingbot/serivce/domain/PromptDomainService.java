@@ -6,6 +6,9 @@ import org.springframework.stereotype.Service;
 import ru.panyukovnn.videoretellingbot.model.Prompt;
 import ru.panyukovnn.videoretellingbot.repository.PromptRepository;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -17,4 +20,7 @@ public class PromptDomainService {
         return promptRepository.save(prompt);
     }
 
+    public Optional<Prompt> findById(UUID id) {
+        return promptRepository.findById(id);
+    }
 }

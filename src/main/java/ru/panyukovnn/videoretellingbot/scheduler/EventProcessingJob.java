@@ -10,6 +10,7 @@ import ru.panyukovnn.videoretellingbot.model.event.ProcessingEvent;
 import ru.panyukovnn.videoretellingbot.model.event.ProcessingEventType;
 import ru.panyukovnn.videoretellingbot.serivce.domain.ProcessingEventDomainService;
 import ru.panyukovnn.videoretellingbot.serivce.eventprocessor.EventProcessor;
+import ru.panyukovnn.videoretellingbot.util.JsonUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -22,11 +23,13 @@ import static ru.panyukovnn.videoretellingbot.model.event.ProcessingEventType.*;
 public class EventProcessingJob {
 
     public static final List<ProcessingEventType> NON_TERMINAL_PROCESSING_EVENT_TYPES = List.of(
+        MAP,
         RATE_RAW_MATERIAL,
         RETELLING,
         PUBLISH_RETELLING
     );
 
+    private final JsonUtil jsonUtil;
     private final ProcessingEventDomainService processingEventDomainService;
     private final Map<ProcessingEventType, EventProcessor> eventProcessorByType;
 
@@ -44,9 +47,8 @@ public class EventProcessingJob {
 
                 processingEventDomainService.delete(event);
             } catch (Exception e) {
-                log.error("Ошибка обработке события: {}. contentId: {}. retellingId: {}. Сообщение: {}", event.getType(), event.getContentId(), event.getRetellingId(), e.getMessage(), e);
+                log.error("Ошибка обработке события: {}. Сообщение: {}", jsonUtil.toJson(event), e.getMessage(), e);
             }
         });
-
     }
 }

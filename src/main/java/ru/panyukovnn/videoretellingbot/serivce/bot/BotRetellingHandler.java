@@ -40,7 +40,7 @@ public class BotRetellingHandler {
 
         tgSender.sendMessage(chatId, "Формирую статью (это может занимать до 2х минут)");
 
-        String retellingResponse = openAiClient.retellingBlockingCall("retelling_from_bot", promptProperties.getBotRetellingPrompt(), subtitles);
+        String retellingResponse = openAiClient.promptingCall("retelling_from_bot", promptProperties.getBotRetellingPrompt(), subtitles);
 
         try {
             tgSender.sendMessage(chatId, retellingResponse);

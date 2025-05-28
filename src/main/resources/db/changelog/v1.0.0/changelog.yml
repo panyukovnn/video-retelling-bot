@@ -38,3 +38,9 @@ databaseChangeLog:
   - include:
       file: 11.create_publishing_channels.yml
       relativeToChangelogFile: true
+  - include:
+      file: 12.update_contents.yml
+      relativeToChangelogFile: true
+  - include:
+      file: 13.update_processing_event.yml
+      relativeToChangelogFile: true

@@ -22,16 +22,16 @@ public class TgSender {
         sendMessage(chatId, null, message);
     }
 
-    public void sendMessage(Long chatId, Integer messageThreadId, String message) {
+    public void sendMessage(Long chatId, Long messageThreadId, String message) {
         List<String> splitLongMessages = tgMessagePreparer.prepareTgMessage(message);
 
         splitLongMessages.forEach(splitMessage -> executeSendMessage(chatId, messageThreadId, splitMessage));
     }
 
-    private void executeSendMessage(Long chatId, Integer messageThreadId, String message) {
+    private void executeSendMessage(Long chatId, Long messageThreadId, String message) {
         SendMessage sendMessage = SendMessage.builder()
             .chatId(chatId)
-            .messageThreadId(messageThreadId)
+            .messageThreadId(messageThreadId != null ? messageThreadId.intValue() : null)
             .disableWebPagePreview(true)
             .parseMode(ParseMode.MARKDOWN)
             .text(message)

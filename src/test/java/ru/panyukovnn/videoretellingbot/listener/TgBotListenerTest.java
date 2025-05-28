@@ -26,7 +26,7 @@ class TgBotListenerTest extends AbstractTest {
     void when_onUpdate_then_success() throws ExecutionException, InterruptedException {
         Update update = createUpdate();
 
-        when(openAiClient.retellingBlockingCall(any(), any(), any()))
+        when(openAiClient.promptingCall(any(), any(), any()))
             .thenReturn("test");
 
         tgBotListener.onUpdate(update).get();

@@ -61,7 +61,7 @@ class RetellingEventProcessorImplTest {
 
         when(contentRepository.findById(contentId)).thenReturn(Optional.of(content));
         when(conveyorTagProperties.getWithGuarantee(ConveyorTag.JAVA_HABR)).thenReturn(conveyorTagConfig);
-        when(openAiClient.retellingBlockingCall(anyString(), anyString(), anyString()))
+        when(openAiClient.promptingCall(anyString(), anyString(), anyString()))
             .thenReturn("Retelling content");
         when(retellingRepository.save(any(Retelling.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -70,7 +70,7 @@ class RetellingEventProcessorImplTest {
 
         // Assert
         verify(contentRepository).findById(contentId);
-        verify(openAiClient).retellingBlockingCall("RETELLING", "Retelling prompt", "Test Content");
+        verify(openAiClient).promptingCall("RETELLING", "Retelling prompt", "Test Content");
         verify(retellingRepository).save(argThat(retelling ->
             retelling.getContentId().equals(contentId) &&
             retelling.getPrompt().equals("Retelling prompt") &&

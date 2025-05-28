@@ -48,6 +48,6 @@ public class ConveyorTagProperties {
     public static class ConveyorTagConfig {
         private String rateMaterialPrompt;
         private String retellingPrompt;
-        private Integer publishingTopicId;
+        private Long publishingTopicId;
     }
 }

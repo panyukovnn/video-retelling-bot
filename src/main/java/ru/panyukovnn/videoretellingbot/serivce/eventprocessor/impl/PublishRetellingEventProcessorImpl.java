@@ -48,7 +48,7 @@ public class PublishRetellingEventProcessorImpl implements EventProcessor {
             ConveyorTag tag = processingEvent.getConveyorTag();
             ConveyorTagProperties.ConveyorTagConfig conveyorTagConfig = conveyorTagProperties.getWithGuarantee(tag);
 
-            Integer messageThreadId = conveyorTagConfig.getPublishingTopicId();
+            Long messageThreadId = conveyorTagConfig.getPublishingTopicId();
             if (messageThreadId == null) {
                 log.error("Не удалось определить messageThreadId по тегу: {}. Для материала: {}", tag, contentTitle);
 
