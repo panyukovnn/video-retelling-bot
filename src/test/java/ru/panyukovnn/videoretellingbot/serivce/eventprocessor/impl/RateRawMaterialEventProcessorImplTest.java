@@ -74,7 +74,7 @@ class RateRawMaterialEventProcessorImplTest {
         when(rateProperties.getThreshold()).thenReturn(50);
         when(contentRateRepository.save(any(ContentRate.class))).thenAnswer(i -> i.getArgument(0));
         when(publishingProperties.getChatId()).thenReturn(123456789L);
-        when(publishingProperties.getRateTgTopicId()).thenReturn(987654321);
+        when(publishingProperties.getRateTgTopicId()).thenReturn(987654321L);
 
         // Act
         rateRawMaterialEventProcessor.process(processingEvent);
@@ -91,7 +91,7 @@ class RateRawMaterialEventProcessorImplTest {
         verify(processingEventDomainService).save(argThat(event ->
             event.getType() == ProcessingEventType.RETELLING
         ));
-        verify(tgSender).sendMessage(eq(123456789L), eq(987654321), anyString());
+        verify(tgSender).sendMessage(eq(123456789L), eq(987654321L), anyString());
     }
 
     @Test
@@ -118,7 +118,7 @@ class RateRawMaterialEventProcessorImplTest {
         when(rateProperties.getThreshold()).thenReturn(50);
         when(contentRateRepository.save(any(ContentRate.class))).thenAnswer(i -> i.getArgument(0));
         when(publishingProperties.getChatId()).thenReturn(123456789L);
-        when(publishingProperties.getRateTgTopicId()).thenReturn(987654321);
+        when(publishingProperties.getRateTgTopicId()).thenReturn(987654321L);
 
         // Act
         rateRawMaterialEventProcessor.process(processingEvent);

@@ -67,7 +67,7 @@ class PublishRetellingEventProcessorImplTest {
         processingEvent.setConveyorTag(ConveyorTag.JAVA_HABR);
 
         ConveyorTagProperties.ConveyorTagConfig conveyorTagConfig = new ConveyorTagProperties.ConveyorTagConfig();
-        conveyorTagConfig.setPublishingTopicId(987654321);
+        conveyorTagConfig.setPublishingTopicId(987654321L);
 
         when(retellingRepository.findById(retellingId)).thenReturn(Optional.of(retelling));
         when(contentRepository.findById(contentId)).thenReturn(Optional.of(content));
@@ -80,7 +80,7 @@ class PublishRetellingEventProcessorImplTest {
         // Assert
         verify(retellingRepository).findById(retellingId);
         verify(contentRepository).findById(contentId);
-        verify(tgSender).sendMessage(eq(123456789L), eq(987654321), anyString());
+        verify(tgSender).sendMessage(eq(123456789L), eq(987654321L), anyString());
         verify(processingEventDomainService).save(argThat(event ->
             event.getType() == ProcessingEventType.PUBLISHED
         ));
@@ -129,13 +129,13 @@ class PublishRetellingEventProcessorImplTest {
         processingEvent.setConveyorTag(ConveyorTag.JAVA_HABR);
 
         ConveyorTagProperties.ConveyorTagConfig conveyorTagConfig = new ConveyorTagProperties.ConveyorTagConfig();
-        conveyorTagConfig.setPublishingTopicId(987654321);
+        conveyorTagConfig.setPublishingTopicId(987654321L);
 
         when(retellingRepository.findById(retellingId)).thenReturn(Optional.of(retelling));
         when(contentRepository.findById(contentId)).thenReturn(Optional.of(content));
         when(publishingProperties.getChatId()).thenReturn(123456789L);
         when(conveyorTagProperties.getWithGuarantee(ConveyorTag.JAVA_HABR)).thenReturn(conveyorTagConfig);
-        doThrow(new RuntimeException("Telegram error")).when(tgSender).sendMessage(any(Long.class), any(Integer.class), anyString());
+        doThrow(new RuntimeException("Telegram error")).when(tgSender).sendMessage(any(Long.class), any(Long.class), anyString());
 
         // Act
         publishRetellingEventProcessor.process(processingEvent);
