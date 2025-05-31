@@ -29,7 +29,14 @@ spring:
         options:
           model: deepseek-chat
           temperature: 0.0
-          max-tokens: 8192
+          max-tokens: 8000 # Токенов специально немного меньше максимума
+  cloud:
+    openfeign:
+      client:
+        config:
+          tg-chats-collector:
+            connectTimeout: 600000
+            readTimeout: 600000
 
 retelling:
   executors:

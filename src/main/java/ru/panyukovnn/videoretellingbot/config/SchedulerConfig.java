@@ -34,8 +34,8 @@ public class SchedulerConfig {
     }
 
     @Bean
-    public ExecutorService tgMessageExtractorScheduler() {
-        return createElasticScheduler(10, 100);
+    public ExecutorService promptingExecutor() {
+        return createElasticScheduler(30, 1000);
     }
 
     private static ThreadPoolExecutor createDiscardPolicySingleThreadExecutor() {

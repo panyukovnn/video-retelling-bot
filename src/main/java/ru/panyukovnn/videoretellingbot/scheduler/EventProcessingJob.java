@@ -12,22 +12,19 @@ import ru.panyukovnn.videoretellingbot.serivce.domain.ProcessingEventDomainServi
 import ru.panyukovnn.videoretellingbot.serivce.eventprocessor.EventProcessor;
 import ru.panyukovnn.videoretellingbot.util.JsonUtil;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import static ru.panyukovnn.videoretellingbot.model.event.ProcessingEventType.*;
+import java.util.function.Predicate;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventProcessingJob {
 
-    public static final List<ProcessingEventType> NON_TERMINAL_PROCESSING_EVENT_TYPES = List.of(
-        MAP,
-        RATE_RAW_MATERIAL,
-        RETELLING,
-        PUBLISH_RETELLING
-    );
+    public static final List<ProcessingEventType> NON_TERMINAL_PROCESSING_EVENT_TYPES = Arrays.stream(ProcessingEventType.values())
+        .filter(Predicate.not(ProcessingEventType::isTerminal))
+        .toList();
 
     private final JsonUtil jsonUtil;
     private final ProcessingEventDomainService processingEventDomainService;

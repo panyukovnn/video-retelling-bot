@@ -64,9 +64,13 @@ public class Content extends AuditableEntity {
      */
     private String content;
     /**
-     * Идентификатор группы контента
+     * Идентификатор группы контента, из которой выполняется преобразование
      */
-    private UUID batchId;
+    private UUID parentBatchId;
+    /**
+     * Идентификатор группы контента, в которую выполняется преобразование
+     */
+    private UUID childBatchId;
 
     @Override
     public boolean equals(Object o) {

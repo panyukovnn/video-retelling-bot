@@ -44,3 +44,6 @@ databaseChangeLog:
   - include:
       file: 13.update_processing_event.yml
       relativeToChangelogFile: true
+  - include:
+      file: 14.update_contents.yml
+      relativeToChangelogFile: true

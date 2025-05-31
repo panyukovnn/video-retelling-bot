@@ -61,14 +61,16 @@ public class TgChatsCollectorHandler {
                 .reducePrompt(tgConveyorRequest.getReducePrompt())
                 .build());
 
-            UUID batchId = UUID.randomUUID();
-            createContents(chatHistory, batchId, prompt.getId(), publishingChannel.getId());
+            createContents(chatHistory, prompt.getId(), publishingChannel.getId());
 
             return null;
         });
     }
 
-    private void createContents(ChatHistoryResponse chatHistory, UUID batchId, UUID promptId, UUID publishingChannelId) {
+    private void createContents(ChatHistoryResponse chatHistory, UUID promptId, UUID publishingChannelId) {
+        UUID parentBatchId = UUID.randomUUID();
+        UUID childBatchId = UUID.randomUUID();
+
         chatHistory.getMessageBatches().forEach(messagesBatch -> {
 //            LocalDate firstMessageDate = messagesBatch.getMessages().get(0).
 //            LocalDate lastMessageDate = chatHistory.getLastMessageDateTime().toLocalDate();
@@ -82,25 +84,23 @@ public class TgChatsCollectorHandler {
                 .meta(null)
                 .publicationDate(chatHistory.getFirstMessageDateTime())
                 .content(jsonUtil.toJson(messagesBatch.getMessages()))
+                .parentBatchId(parentBatchId)
+                .childBatchId(childBatchId)
                 .build();
 
             contentDomainService.save(content);
-
-            createProcessingEvent(content.getId(), batchId, promptId, publishingChannelId);
         });
-    }
 
-    private void createProcessingEvent(UUID contentId, UUID batchId, UUID promptId, UUID publishingChannelId) {
-        ProcessingEvent processingEvent = ProcessingEvent.builder()
+        ProcessingEvent reduceProcessingEvent = ProcessingEvent.builder()
             .type(ProcessingEventType.MAP)
             .conveyorTag(ConveyorTag.TG_MESSAGE_BATCH)
-            .conveyorType(ConveyorType.MAP)
-            .contentId(contentId)
-            .contentBatchId(batchId)
+            .conveyorType(ConveyorType.MAP_REDUCE)
+            .contentId(null)
+            .contentBatchId(parentBatchId)
             .promptId(promptId)
             .publishingChannelId(publishingChannelId)
             .build();
-        processingEventDomainService.save(processingEvent);
+        processingEventDomainService.save(reduceProcessingEvent);
     }
 
     private PublishingChannel definePublishingChannel(TgConveyorRequest tgConveyorRequest) {

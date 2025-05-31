@@ -2,6 +2,7 @@ package ru.panyukovnn.videoretellingbot.model.event;
 
 import jakarta.persistence.*;
 import lombok.*;
+import ru.panyukovnn.videoretellingbot.model.AuditableEntity;
 import ru.panyukovnn.videoretellingbot.model.ConveyorTag;
 import ru.panyukovnn.videoretellingbot.model.ConveyorType;
 
@@ -15,7 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "processing_events")
-public class ProcessingEvent {
+public class ProcessingEvent extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
