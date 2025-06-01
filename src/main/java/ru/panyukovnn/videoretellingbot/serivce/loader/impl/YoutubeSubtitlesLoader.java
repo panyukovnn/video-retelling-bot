@@ -104,7 +104,7 @@ public class YoutubeSubtitlesLoader implements DataLoader {
                         .orElseGet(() -> optionalRuAutoGenSubs.map(it -> Pair.of(it, Lang.RU))
                             .orElseGet(() -> optionalEnSubs.map(it -> Pair.of(it, Lang.EN))
                                 .orElseGet(() -> optionalEnAutoGenSubs.map(it -> Pair.of(it, Lang.EN))
-                                    .orElseThrow(() -> new RetellingException("48ae", "Для указанного видео отсутствуют субтитры")))));
+                                    .orElseThrow(() -> new RetellingException("48ae", "Не удалось загрузить субтитры для указанного видео")))));
                 })
                 .get();
         } catch (ExecutionException | InterruptedException e) {
@@ -169,13 +169,17 @@ public class YoutubeSubtitlesLoader implements DataLoader {
 
             int exitCode = process.waitFor();
             if (exitCode != 0) {
-                throw new RetellingException("12d7", "Ошибка выгрузки субтитров с помощью yt-dlp, exitCode: " + exitCode);
+                log.warn("12d7 Ошибка выгрузки субтитров с помощью yt-dlp, exitCode: " + exitCode);
+
+                return Optional.empty();
             }
         } catch (Exception e) {
-            throw new RetellingException("45bb", "Ошибка выгрузки субтитров с помощью yt-dlp: " + e.getMessage(), e);
+            log.error("45bb Ошибка выгрузки субтитров с помощью yt-dlp: " + e.getMessage(), e);
+
+            return Optional.empty();
         }
 
-        log.info("Субтитры успешо загружены");
+        log.info("Субтитры успешно загружены");
 
         return Optional.of(outputFileName + "." + lang + ".vtt");
     }
