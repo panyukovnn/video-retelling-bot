@@ -3,7 +3,9 @@ package ru.panyukovnn.videoretellingbot.serivce.eventprocessor.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import ru.panyukovnn.videoretellingbot.client.OpenAiClient;
+import ru.panyukovnn.videoretellingbot.exception.ConveyorException;
 import ru.panyukovnn.videoretellingbot.exception.InvalidProcessingEventException;
 import ru.panyukovnn.videoretellingbot.model.Prompt;
 import ru.panyukovnn.videoretellingbot.model.content.Content;
@@ -28,8 +30,8 @@ public class ReduceEventProcessorImpl implements EventProcessor {
 
     private final JsonUtil jsonUtil;
     private final OpenAiClient openAiClient;
-    private final ContentDomainService contentDomainService;
     private final PromptDomainService promptDomainService;
+    private final ContentDomainService contentDomainService;
     private final ProcessingEventDomainService processingEventDomainService;
 
     @Override
@@ -62,7 +64,7 @@ public class ReduceEventProcessorImpl implements EventProcessor {
             processingEvent.setType(ProcessingEventType.PUBLISHING);
             processingEvent.setContentId(reducedContent.getId());
 
-            log.error("Успешно выполнен '{}' для batchId: {}", getProcessingEventType(), processingEvent.getContentBatchId());
+            log.info("Успешно выполнен '{}' для batchId: {}", getProcessingEventType(), processingEvent.getContentBatchId());
         } catch (Exception e) {
             log.error("Произошла ошибка на этапе '{}' для batchId: {}. Текст ошибки: {}", getProcessingEventType(), processingEvent.getContentBatchId(), e.getMessage(), e);
 
@@ -98,8 +100,11 @@ public class ReduceEventProcessorImpl implements EventProcessor {
             if (reducedBatchResults.size() == 1) {
                 return reducedBatchResults.get(0);
             }
+            if (CollectionUtils.isEmpty(contentBatches)) {
+                throw new ConveyorException("3901", "Ошибка reduce, не удалось сформировать контент для пересказа");
+            }
 
-            log.info("Выполняю '{}' итерацию reduce для контента", counter);
+            log.info("Выполняю '{}' итерацию reduce для контента", counter++);
 
             contentBatches = createContentBatches(reducedBatchResults);
         }

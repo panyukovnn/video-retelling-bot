@@ -77,6 +77,7 @@ retelling:
 bot:
   name: ${BOT_NAME}
   token: ${BOT_TOKEN}
+  admin-ids: ${BOT_ADMIN_IDS}
 
 logging:
   level:

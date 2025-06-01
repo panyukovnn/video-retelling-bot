@@ -62,6 +62,7 @@ dependencies {
 
     testImplementation "com.h2database:h2"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.springframework.cloud:spring-cloud-starter-contract-stub-runner"
 }
 
 test {
@@ -73,6 +74,8 @@ jacocoTestReport {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
                     "**/config/*",
+                    "**/dto/*",
+                    "**/model/*",
                     "**/property/*",
                     "**/exception/*"
             ])

@@ -35,7 +35,7 @@ public class BigTextUtils {
             } else {
                 // Слово
                 if (wordCount == maxWordsPerChunk) {
-                    chunks.add(currentChunk.toString());
+                    chunks.add(currentChunk.toString().trim());
                     currentChunk.setLength(0);
                     wordCount = 0;
                 }
@@ -45,7 +45,7 @@ public class BigTextUtils {
         }
 
         if (!currentChunk.isEmpty()) {
-            chunks.add(currentChunk.toString());
+            chunks.add(currentChunk.toString().trim());
         }
 
         return chunks;

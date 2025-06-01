@@ -1,52 +1,119 @@
 package ru.panyukovnn.videoretellingbot.util;
 
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.junit.jupiter.MockitoExtension;
+import ru.panyukovnn.videoretellingbot.exception.RetellingException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
 class YoutubeLinkHelperTest {
 
     @ParameterizedTest
-    @ValueSource(strings = {
-        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        "https://youtu.be/dQw4w9WgXcQ",
-        "https://m.youtube.com/watch?v=1Zr_ydPsmas&list=WL&index=6&ab_channel=MaximDorofeev",
-        "https://www.m.youtube.com/watch?v=dQw4w9WgXcQ",
-        "https://youtube.com/watch?v=dQw4w9WgXcQ",
-        "https://youtube.com/shorts/YOJ9yQx5ea4?si=Bjau-s_nZ-70Dkkw",
-        "https://www.youtube.com/live/GNAiIFSwEGk?si=g1SSch43qU7eLohb",
-        "https://m.youtube.com/watch?time_continue=140&v=ACf59g4ItDE&embeds_referring_euri=https%3A%2F%2Fwww.google.com%2F&source_ve_path=MjgyNDAsMjgyNDAsMjgyNDAsMjgyNDAsMjgyNDAsMjgyNDAsMjgyNDAsMjgyNDAsMjgyNDAsMjgyNDAsMjgyNDAsMjgyNDAsMjgyNDAsMjg2NjY"
+    @CsvSource({
+        "https://youtube.com/watch?v=test, https://youtube.com/watch?v=test",
+        "https://youtube.com/watch?v=test&t=123, https://youtube.com/watch?v=test",
+        "https://youtube.com/watch?v=test&feature=share, https://youtube.com/watch?v=test",
+        "https://youtube.com/watch?v=test&t=123&feature=share, https://youtube.com/watch?v=test",
+        "https://youtu.be/test, https://youtu.be/test",
+        "https://youtu.be/test?t=123, https://youtu.be/test"
     })
-    void when_checkValidYoutubeLink_then_success(String validYoutubeLink) {
-        assertTrue(YoutubeLinkHelper.isValidYoutubeUrl(validYoutubeLink));
+    void when_removeRedundantQueryParamsFromYoutubeLint_then_success(String input, String expected) {
+        // Act
+        String result = YoutubeLinkHelper.removeRedundantQueryParamsFromYoutubeLint(input);
+
+        // Assert
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void when_removeRedundantQueryParamsFromYoutubeLint_withInvalidUrl_then_throwException() {
+        // Arrange
+        String invalidUrl = "invalid url";
+
+        // Act & Assert
+        RetellingException exception = assertThrows(
+            RetellingException.class,
+            () -> YoutubeLinkHelper.removeRedundantQueryParamsFromYoutubeLint(invalidUrl)
+        );
+
+        assertEquals("4bc5", exception.getId());
+        assertEquals("Невалидная ссылка youtube", exception.getMessage());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {
-        "https://www.wrongyoutube.com/watch?v=dQw4w9WgXcQ",
-        "https://youtu.bo/dQw4w9WgXcQ",
-        "https://.youtube.com/watch?v=1Zr_ydPsmas&list=WL&index=6&ab_channel=MaximDorofeev",
-        "https://www.m.youtube.com/watch?v=dQw4w9WgX",
-        "https://youtube.com/atch?v=dQw4w9WgXcQ",
-        "https://google.com/shorts/YOJ9yQx5ea4?si=Bjau-s_nZ-70Dkkw",
-        "https://www.youtube.com/live/"
+        "https://youtube.com/watch?v=12345678901",
+        "https://youtu.be/12345678901",
+        "https://www.youtube.com/watch?v=12345678901",
+        "https://www.youtube.com/shorts/12345678901",
+        "https://youtube.com/shorts/12345678901",
+        "https://www.youtube.com/live/12345678901",
+        "https://youtube.com/live/12345678901"
     })
-    void when_checkValidYoutubeLink_urlInvalid_then_success(String validYoutubeLink) {
-        assertFalse(YoutubeLinkHelper.isValidYoutubeUrl(validYoutubeLink));
+    void when_isValidYoutubeUrl_withValidUrls_then_returnTrue(String url) {
+        // Act
+        boolean result = YoutubeLinkHelper.isValidYoutubeUrl(url);
+
+        // Assert
+        assertTrue(result);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {
-        "https://www.youtube.com/watch?v=abc123&feature=share&t=10",
-        "https://www.youtube.com/watch?v=abc123",
-        "https://www.youtube.com/watch?v=abc123&list=PLVe-2wcL84b&index=18&ab_channel=Some%2CThing%2FEncoded"
+        "https://youtube.com/watch",
+        "https://youtube.com/watch?v=",
+        "https://youtube.com/watch?v=invalid",
+        "https://youtube.com/shorts",
+        "https://youtube.com/live",
+        "https://notyoutube.com/watch?v=test",
+        "https://fakeyoutube.com/watch?v=test",
+        "https://youtube.com",
+        "https://youtube.com/",
+        "https://youtube.com/invalid",
+        "invalid url",
+        "http://youtube.com/watch?v=test",
+        "ftp://youtube.com/watch?v=test"
     })
-    void shouldKeepOnlyVParam(String youtubeLink) {
-        String actual = YoutubeLinkHelper.removeRedundantQueryParamsFromYoutubeLint(youtubeLink);
-        assertEquals("https://www.youtube.com/watch?v=abc123", actual);
+    void when_isValidYoutubeUrl_withInvalidUrls_then_returnFalse(String url) {
+        // Act
+        boolean result = YoutubeLinkHelper.isValidYoutubeUrl(url);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "https://youtube.com/watch?v=12345678901",
+        "https://youtu.be/12345678901",
+        "https://www.youtube.com/watch?v=12345678901",
+        "https://m.youtube.com/watch?v=12345678901",
+        "https://music.youtube.com/watch?v=12345678901"
+    })
+    void when_isValidYouTubeHost_withValidHosts_then_returnTrue(String link) {
+        // Act
+        boolean result = YoutubeLinkHelper.isValidYoutubeUrl(link);
+
+        // Assert
+        assertTrue(result);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        ".youtube.com",
+        "fakeyoutube.com",
+        "youtube.com.fake",
+        "youtube.com.",
+        ".youtube.com.",
+        "youtube.com.fake.com"
+    })
+    void when_isValidYouTubeHost_withInvalidHosts_then_returnFalse(String host) {
+        // Act
+        boolean result = YoutubeLinkHelper.isValidYoutubeUrl("https://" + host + "/watch?v=test");
+
+        // Assert
+        assertFalse(result);
     }
 }

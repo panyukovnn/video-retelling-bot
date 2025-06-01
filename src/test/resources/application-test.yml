@@ -33,4 +33,4 @@ retelling:
 
   integration:
     tg-chats-collector:
-      host: http://localhost # TODO wiremock
+      host: http://localhost:${wiremock.server.port}

@@ -12,9 +12,9 @@ import java.time.LocalDateTime;
 public interface TgChatsCollectorFeignClient {
 
     @GetMapping("/getChatHistory")
-    ChatHistoryResponse getChatHistory(@RequestParam(required = false) String publicChatName,
-                                       @RequestParam(required = false) String privateChatNamePart,
-                                       @RequestParam(required = false) String topicName,
+    ChatHistoryResponse getChatHistory(@RequestParam(required = false, name = "publicChatName") String publicChatName,
+                                       @RequestParam(required = false, name = "privateChatNamePart") String privateChatNamePart,
+                                       @RequestParam(required = false, name = "topicName") String topicName,
                                        @RequestParam(required = false) Integer limit,
                                        @Schema(description = "Дата до которой будут извлекаться сообщения, в UTC")
                                        @RequestParam(required = false) LocalDateTime dateFrom,

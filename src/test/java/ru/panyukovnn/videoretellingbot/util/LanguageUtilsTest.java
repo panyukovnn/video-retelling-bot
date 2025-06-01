@@ -1,47 +1,82 @@
 package ru.panyukovnn.videoretellingbot.util;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.params.provider.CsvSource;
 import ru.panyukovnn.videoretellingbot.model.content.Lang;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
 class LanguageUtilsTest {
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "Привет, как дела?",
-        "Ёжик ёлка"
-    })
-    void when_detectLangByLettersCount_withRusText_then_returnRuLang(String text) {
-        assertEquals(Lang.RU, LanguageUtils.detectLangByLettersCount(text));
-    }
+    @Test
+    void when_detectLangByLettersCount_withEmptyText_then_returnUndefined() {
+        // Act
+        Lang result = LanguageUtils.detectLangByLettersCount("");
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "Hello, how are you?",
-        "Hi Пр"
-    })
-    void when_detectLangByLettersCount_withEngText_then_returnEnLang(String text) {
-        assertEquals(Lang.EN, LanguageUtils.detectLangByLettersCount(text));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "1234567890 !@#$%^&*()",
-        "1234567890",
-        "Hello!!! $$$"
-    })
-    void when_detectLangByLettersCount_withOtherSymbolsText_then_returnUndefinedLang(String text) {
-        assertEquals(Lang.UNDEFINED, LanguageUtils.detectLangByLettersCount(text));
+        // Assert
+        assertEquals(Lang.UNDEFINED, result);
     }
 
     @Test
-    void when_detectLangByLettersCount_withNullInput_then_returnUndefinedLang() {
-        assertEquals(Lang.UNDEFINED, LanguageUtils.detectLangByLettersCount(null));
+    void when_detectLangByLettersCount_withNullText_then_returnUndefined() {
+        // Act
+        Lang result = LanguageUtils.detectLangByLettersCount(null);
+
+        // Assert
+        assertEquals(Lang.UNDEFINED, result);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "Hello world, EN",
+        "Hello мир, EN",
+        "Привет world, RU",
+        "Привет мир, RU",
+        "123456789, UNDEFINED",
+        "!@#$%^&*(), UNDEFINED"
+    })
+    void when_detectLangByLettersCount_then_returnCorrectLang(String text, Lang expectedLang) {
+        // Act
+        Lang result = LanguageUtils.detectLangByLettersCount(text);
+
+        // Assert
+        assertEquals(expectedLang, result);
+    }
+
+    @Test
+    void when_detectLangByLettersCount_withMoreRussianLetters_then_returnRu() {
+        // Arrange
+        String text = "Привет world!";
+
+        // Act
+        Lang result = LanguageUtils.detectLangByLettersCount(text);
+
+        // Assert
+        assertEquals(Lang.RU, result);
+    }
+
+    @Test
+    void when_detectLangByLettersCount_withMoreEnglishLetters_then_returnEn() {
+        // Arrange
+        String text = "Hello мир!";
+
+        // Act
+        Lang result = LanguageUtils.detectLangByLettersCount(text);
+
+        // Assert
+        assertEquals(Lang.EN, result);
+    }
+
+    @Test
+    void when_detectLangByLettersCount_withMoreSpecialSymbols_then_returnUndefined() {
+        // Arrange
+        String text = "!@#$%^&*()_+";
+
+        // Act
+        Lang result = LanguageUtils.detectLangByLettersCount(text);
+
+        // Assert
+        assertEquals(Lang.UNDEFINED, result);
     }
 }

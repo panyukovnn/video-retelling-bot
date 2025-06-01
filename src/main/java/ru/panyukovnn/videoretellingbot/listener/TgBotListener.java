@@ -11,8 +11,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import ru.panyukovnn.videoretellingbot.dto.UpdateParams;
 import ru.panyukovnn.videoretellingbot.exception.RetellingException;
-import ru.panyukovnn.videoretellingbot.serivce.bot.ClientService;
 import ru.panyukovnn.videoretellingbot.serivce.bot.BotRetellingHandler;
+import ru.panyukovnn.videoretellingbot.serivce.bot.ClientService;
 import ru.panyukovnn.videoretellingbot.serivce.telegram.TgSender;
 
 import java.time.Instant;
