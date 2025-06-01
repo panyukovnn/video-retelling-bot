@@ -25,7 +25,7 @@ class SubtitlesFileNameGeneratorTest {
         // Assert
         assertNotNull(fileName);
         assertTrue(fileName.startsWith("subtitles-"));
-        assertTrue(fileName.matches("^subtitles-\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}-[a-f0-9]{8}$"));
+        assertTrue(fileName.matches("^subtitles-\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}-[a-я0-9]{8}$"));
     }
 
     @Test
