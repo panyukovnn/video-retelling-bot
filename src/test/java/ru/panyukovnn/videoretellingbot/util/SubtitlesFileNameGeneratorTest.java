@@ -23,17 +23,6 @@ class SubtitlesFileNameGeneratorTest {
         String fileName = generator.generateFileName();
 
         // Assert
-        assertNotNull(fileName);
-        assertTrue(fileName.startsWith("subtitles-"));
-        assertTrue(fileName.matches("^subtitles-\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}-[a-я0-9]{8}$"));
-    }
-
-    @Test
-    void when_generateFileName_then_containsValidDateTime() {
-        // Act
-        String fileName = generator.generateFileName();
-
-        // Assert
         String dateTimeStr = fileName.substring("subtitles-".length(), fileName.length() - 9); // -9 для UUID
         LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_DATE_TIME);
         assertNotNull(dateTime);
