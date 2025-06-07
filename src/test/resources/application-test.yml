@@ -12,24 +12,22 @@ retelling:
       habr-cron: "-"
     event-processing:
       cron: "-"
-  publishing:
-    chat-id: 1
-    rate-tg-topic-id: 3
-    debug-topic-id: 4
   data-finder:
     habr:
       period-of-days-to-look-for: 10_000_000 # Потенциально бесконечное количество дней, чтобы не зависеть от текущей даты в тестах
-  conveyor-tag-config-map:
-    java-habr:
-      rate-material-prompt: prompt1
-      retelling-prompt: prompt2
-      publishing-topic-id: 5
-    tg-message-batch:
-      rate-material-prompt: null
-      retelling-prompt: prompt3
-      publishing-topic-id: 6
-  prompt:
-    bot-retelling-prompt: prompt
+
+  hardcoded-publishing-channels:
+    chat-id: 1
+    rate-tg-topic-id: 2
+    debug-topic-id: 3
+    java-habr-topic-id: 4
+    tg-message-batch-topic-id: 5
+
+  hardcoded-prompts:
+    youtube-retelling: prompt1
+    java-habr-rate-material: prompt2
+    java-habr-retelling: prompt3
+    tg-message-batch-retelling: prompt4
 
   integration:
     tg-chats-collector:

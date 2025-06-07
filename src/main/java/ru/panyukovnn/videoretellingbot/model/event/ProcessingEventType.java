@@ -21,9 +21,9 @@ public enum ProcessingEventType {
      */
     RETELLING(true),
     /**
-     * Задача на публикацию пересказа
+     * На публикацию
      */
-    PUBLISH_RETELLING(false),
+    PUBLISHING(false),
     /**
      * Опубликован, терминальный статус
      */
@@ -41,11 +41,7 @@ public enum ProcessingEventType {
      * Шаг объединения
      */
     REDUCE(false),
-    REDUCING_ERROR(true),
-    /**
-     * На публикацию
-     */
-    PUBLISHING(false);
+    REDUCING_ERROR(true);
 
     private final boolean terminal;
 }

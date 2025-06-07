@@ -12,7 +12,7 @@ import ru.panyukovnn.videoretellingbot.model.content.Content;
 import ru.panyukovnn.videoretellingbot.model.event.ProcessingEvent;
 import ru.panyukovnn.videoretellingbot.model.event.ProcessingEventType;
 import ru.panyukovnn.videoretellingbot.model.retelling.Retelling;
-import ru.panyukovnn.videoretellingbot.property.ConveyorTagProperties;
+import ru.panyukovnn.videoretellingbot.property.HardcodedPromptProperties;
 import ru.panyukovnn.videoretellingbot.repository.ContentRepository;
 import ru.panyukovnn.videoretellingbot.repository.RetellingRepository;
 import ru.panyukovnn.videoretellingbot.serivce.domain.ProcessingEventDomainService;
@@ -35,7 +35,7 @@ class RetellingEventProcessorImplTest {
     @Mock
     private RetellingRepository retellingRepository;
     @Mock
-    private ConveyorTagProperties conveyorTagProperties;
+    private HardcodedPromptProperties hardcodedPromptProperties;
     @Mock
     private ProcessingEventDomainService processingEventDomainService;
 
@@ -56,11 +56,8 @@ class RetellingEventProcessorImplTest {
         processingEvent.setType(ProcessingEventType.RETELLING);
         processingEvent.setConveyorTag(ConveyorTag.JAVA_HABR);
 
-        ConveyorTagProperties.ConveyorTagConfig conveyorTagConfig = new ConveyorTagProperties.ConveyorTagConfig();
-        conveyorTagConfig.setRetellingPrompt("Retelling prompt");
-
         when(contentRepository.findById(contentId)).thenReturn(Optional.of(content));
-        when(conveyorTagProperties.getWithGuarantee(ConveyorTag.JAVA_HABR)).thenReturn(conveyorTagConfig);
+        when(hardcodedPromptProperties.getJavaHabrRetelling()).thenReturn("Retelling prompt");
         when(openAiClient.promptingCall(anyString(), anyString(), anyString()))
             .thenReturn("Retelling content");
         when(retellingRepository.save(any(Retelling.class))).thenAnswer(i -> i.getArgument(0));
@@ -78,7 +75,7 @@ class RetellingEventProcessorImplTest {
             retelling.getRetelling().equals("Retelling content")
         ));
         verify(processingEventDomainService).save(argThat(event ->
-            event.getType() == ProcessingEventType.PUBLISH_RETELLING
+            event.getType() == ProcessingEventType.PUBLISHING
         ));
     }
 

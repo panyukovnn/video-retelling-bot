@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.panyukovnn.videoretellingbot.client.OpenAiClient;
 import ru.panyukovnn.videoretellingbot.exception.RetellingException;
 import ru.panyukovnn.videoretellingbot.model.content.Content;
-import ru.panyukovnn.videoretellingbot.property.PromptProperties;
+import ru.panyukovnn.videoretellingbot.property.HardcodedPromptProperties;
 import ru.panyukovnn.videoretellingbot.repository.ContentRepository;
 import ru.panyukovnn.videoretellingbot.serivce.loader.DataLoader;
 import ru.panyukovnn.videoretellingbot.serivce.telegram.TgSender;
@@ -20,7 +20,7 @@ public class BotRetellingHandler {
     private final TgSender tgSender;
     private final OpenAiClient openAiClient;
     private final DataLoader youtubeSubtitlesLoader;
-    private final PromptProperties promptProperties;
+    private final HardcodedPromptProperties hardcodedPromptProperties;
     private final ContentRepository contentRepository;
 
     public void handleRetelling(Long chatId, String inputMessage) {
@@ -40,7 +40,7 @@ public class BotRetellingHandler {
 
         tgSender.sendMessage(chatId, "Формирую статью (это может занимать до 2х минут)");
 
-        String retellingResponse = openAiClient.promptingCall("retelling_from_bot", promptProperties.getBotRetellingPrompt(), subtitles);
+        String retellingResponse = openAiClient.promptingCall("retelling_from_bot", hardcodedPromptProperties.getYoutubeRetelling(), subtitles);
 
         try {
             tgSender.sendMessage(chatId, retellingResponse);

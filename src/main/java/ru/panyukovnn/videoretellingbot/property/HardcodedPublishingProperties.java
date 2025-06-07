@@ -8,10 +8,17 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "retelling.publishing")
-public class PublishingProperties {
+@ConfigurationProperties(prefix = "retelling.hardcoded-publishing-channels")
+public class HardcodedPublishingProperties {
 
     private Long chatId;
     private Long rateTgTopicId;
+    /**
+     * TODO использовать
+     */
+    private Long debugTopicId;
+
+    private Long javaHabrTopicId;
+    private Long tgMessageBatchTopicId;
 
 }

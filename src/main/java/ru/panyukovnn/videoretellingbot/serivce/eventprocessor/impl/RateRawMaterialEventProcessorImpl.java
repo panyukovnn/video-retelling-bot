@@ -8,13 +8,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.panyukovnn.videoretellingbot.client.OpenAiClient;
 import ru.panyukovnn.videoretellingbot.exception.RawMaterialRateException;
-import ru.panyukovnn.videoretellingbot.model.ConveyorTag;
 import ru.panyukovnn.videoretellingbot.model.content.Content;
 import ru.panyukovnn.videoretellingbot.model.content.ContentRate;
 import ru.panyukovnn.videoretellingbot.model.event.ProcessingEvent;
 import ru.panyukovnn.videoretellingbot.model.event.ProcessingEventType;
-import ru.panyukovnn.videoretellingbot.property.ConveyorTagProperties;
-import ru.panyukovnn.videoretellingbot.property.PublishingProperties;
+import ru.panyukovnn.videoretellingbot.property.HardcodedPromptProperties;
+import ru.panyukovnn.videoretellingbot.property.HardcodedPublishingProperties;
 import ru.panyukovnn.videoretellingbot.property.RateProperties;
 import ru.panyukovnn.videoretellingbot.repository.ContentRateRepository;
 import ru.panyukovnn.videoretellingbot.repository.ContentRepository;
@@ -33,10 +32,10 @@ public class RateRawMaterialEventProcessorImpl implements EventProcessor {
     private final OpenAiClient openAiClient;
     private final RateProperties rateProperties;
     private final ContentRepository contentRepository;
-    private final PublishingProperties publishingProperties;
-    private final ConveyorTagProperties conveyorTagProperties;
     private final ContentRateRepository contentRateRepository;
+    private final HardcodedPromptProperties hardcodedPromptProperties;
     private final ProcessingEventDomainService processingEventDomainService;
+    private final HardcodedPublishingProperties hardcodedPublishingProperties;
 
     @Override
     public void process(ProcessingEvent processingEvent) {
@@ -50,15 +49,7 @@ public class RateRawMaterialEventProcessorImpl implements EventProcessor {
             return;
         }
 
-        ConveyorTag tag = processingEvent.getConveyorTag();
-        ConveyorTagProperties.ConveyorTagConfig conveyorTagConfig = conveyorTagProperties.getWithGuarantee(tag);
-        String prompt = conveyorTagConfig.getRateMaterialPrompt();
-
-        if (prompt == null) {
-            log.warn("Не удалось определить rateMaterial prompt по тегу: {}", tag);
-
-            return;
-        }
+        String prompt = hardcodedPromptProperties.getJavaHabrRateMaterial();
 
         String retellingResponse = openAiClient.promptingCall("rate_material", prompt, content.getContent());
 
@@ -99,7 +90,7 @@ public class RateRawMaterialEventProcessorImpl implements EventProcessor {
 
         String formattedMessage = formatMessage(content, contentRate.getGrounding());
 
-        tgSender.sendMessage(publishingProperties.getChatId(), publishingProperties.getRateTgTopicId(), formattedMessage);
+        tgSender.sendMessage(hardcodedPublishingProperties.getChatId(), hardcodedPublishingProperties.getRateTgTopicId(), formattedMessage);
     }
 
     @Override

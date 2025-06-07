@@ -8,7 +8,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.bind.annotation.PostMapping;
 import ru.panyukovnn.videoretellingbot.client.OpenAiClient;
 import ru.panyukovnn.videoretellingbot.config.TgBotApi;
 import ru.panyukovnn.videoretellingbot.listener.TgBotListener;

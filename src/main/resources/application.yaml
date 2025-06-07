@@ -48,26 +48,24 @@ retelling:
       habr-cron: 0 0 * * * *
     event-processing:
       cron: "*/10 * * * * *"
-  publishing:
-    chat-id: ${PUBLISHING_CHAT_ID}
-    rate-tg-topic-id: ${RATE_TG_TOPIC_ID}
-    debug-topic-id: ${DEBUG_TG_TOPIC_ID}
   rate:
     threshold: 70 # Оценка материала должна быть выше 70% для его публикации
   data-finder:
     habr:
       period-of-days-to-look-for: 1
 
-  conveyor-tag-config-map:
-    java-habr:
-      rate-material-prompt: ${JAVA_HABR_RATE_MATERIAL_PROMPT}
-      retelling-prompt: ${JAVA_HABR_RETELLING_PROMPT}
-      publishing-topic-id: ${JAVA_RETELLING_TG_TOPIC_ID}
-    tg-message-batch:
-      retelling-prompt: ${TG_MESSAGE_BATCH_RETELLING_PROMPT}
-      publishing-topic-id: ${TG_MESSAGE_BATCH_RETELLING_TG_TOPIC_ID}
-  prompt:
-    bot-retelling-prompt: ${BOT_RETELLING_PROMPT}
+  hardcoded-publishing-channels:
+    chat-id: ${PUBLISHING_CHAT_ID}
+    rate-tg-topic-id: ${RATE_TG_TOPIC_ID}
+    debug-topic-id: ${DEBUG_TG_TOPIC_ID}
+    java-habr-topic-id: ${JAVA_RETELLING_TG_TOPIC_ID}
+    tg-message-batch-topic-id: ${TG_MESSAGE_BATCH_RETELLING_TG_TOPIC_ID}
+
+  hardcoded-prompts:
+    youtube-retelling: ${YOUTUBE_RETELLING_PROMPT}
+    java-habr-rate-material: ${JAVA_HABR_RATE_MATERIAL_PROMPT}
+    java-habr-retelling: ${JAVA_HABR_RETELLING_PROMPT}
+    tg-message-batch-retelling: ${TG_MESSAGE_BATCH_RETELLING_PROMPT}
 
   integration:
     tg-chats-collector:

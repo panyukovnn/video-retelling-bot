@@ -5,26 +5,29 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.panyukovnn.videoretellingbot.client.OpenAiClient;
+import ru.panyukovnn.videoretellingbot.exception.InvalidProcessingEventException;
 import ru.panyukovnn.videoretellingbot.model.ConveyorTag;
 import ru.panyukovnn.videoretellingbot.model.content.Content;
 import ru.panyukovnn.videoretellingbot.model.event.ProcessingEvent;
 import ru.panyukovnn.videoretellingbot.model.event.ProcessingEventType;
 import ru.panyukovnn.videoretellingbot.model.retelling.Retelling;
-import ru.panyukovnn.videoretellingbot.property.ConveyorTagProperties;
+import ru.panyukovnn.videoretellingbot.property.HardcodedPromptProperties;
 import ru.panyukovnn.videoretellingbot.repository.ContentRepository;
 import ru.panyukovnn.videoretellingbot.repository.RetellingRepository;
 import ru.panyukovnn.videoretellingbot.serivce.domain.ProcessingEventDomainService;
 import ru.panyukovnn.videoretellingbot.serivce.eventprocessor.EventProcessor;
+import ru.panyukovnn.videoretellingbot.util.JsonUtil;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RetellingEventProcessorImpl implements EventProcessor {
 
+    private final JsonUtil jsonUtil;
     private final OpenAiClient openAiClient;
     private final ContentRepository contentRepository;
     private final RetellingRepository retellingRepository;
-    private final ConveyorTagProperties conveyorTagProperties;
+    private final HardcodedPromptProperties hardcodedPromptProperties;
     private final ProcessingEventDomainService processingEventDomainService;
 
     @Override
@@ -32,13 +35,15 @@ public class RetellingEventProcessorImpl implements EventProcessor {
         Content content = findContent(processingEvent);
 
         ConveyorTag tag = processingEvent.getConveyorTag();
-        ConveyorTagProperties.ConveyorTagConfig conveyorTagConfig = conveyorTagProperties.getWithGuarantee(tag);
-        String prompt = conveyorTagConfig.getRetellingPrompt();
-        if (prompt == null) {
-            log.error("Не удалось определить retelling prompt по тегу: {}", tag);
 
-            return;
+        if (tag == null) {
+            throw new InvalidProcessingEventException("8f0a", "Невозможно выполнить пересказ материала, поскольку у него отсутствует conveyorTag и невозможно определить prompt: " + jsonUtil.toJson(processingEvent));
         }
+
+        String prompt = switch (tag) {
+            case JAVA_HABR -> hardcodedPromptProperties.getJavaHabrRetelling();
+            case TG_MESSAGE_BATCH -> hardcodedPromptProperties.getTgMessageBatchRetelling();
+        };
 
         log.info("Успешно определен prompt по тегу: {}. Для материала: {}", tag, content.getTitle());
 
@@ -52,7 +57,7 @@ public class RetellingEventProcessorImpl implements EventProcessor {
             .build()
         );
 
-        processingEvent.setType(ProcessingEventType.PUBLISH_RETELLING);
+        processingEvent.setType(ProcessingEventType.PUBLISHING);
         processingEvent.setRetellingId(retelling.getId());
         processingEventDomainService.save(processingEvent);
 

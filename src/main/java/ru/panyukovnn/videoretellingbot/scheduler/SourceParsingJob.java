@@ -32,10 +32,10 @@ public class SourceParsingJob {
     @Scheduled(cron = "${retelling.scheduled-jobs.source-parsing.habr-cron}")
     public void parseHabr() {
         try {
-            Content lastContent = contentRepository.findTopBySourceOrderByPublicationDateDesc(Source.HABR)
-                .orElse(null);
             List<String> foundedLinks = habrDataFinder.findDataToLoad();
 
+            Content lastContent = contentRepository.findTopBySourceOrderByPublicationDateDesc(Source.HABR)
+                .orElse(null);
             List<String> linksToLoad = defineLinksToLoad(foundedLinks, lastContent);
 
             linksToLoad.forEach(link -> {
@@ -58,7 +58,7 @@ public class SourceParsingJob {
                 }
             });
         } catch (Exception e) {
-            log.error("Ошибка при пасниге habr: {}", e.getMessage(), e);
+            log.error("Ошибка при парсинге habr: {}", e.getMessage(), e);
         }
     }
 
