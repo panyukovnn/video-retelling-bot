@@ -36,6 +36,23 @@ jobs:
             APP_TAG=${IMAGE_TAG} docker compose up -d
           "
 
+      - name: Health check
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+        run: |
+          echo "Ожидание готовности приложения..."
+          for i in {1..12}; do
+            echo "Попытка $i из 12..."
+            if curl -s "http://${SERVER_IP}:8082/conveyor/actuator/health" | grep -q '"status":"UP"'; then
+              echo "✅ Приложение успешно запущено"
+              exit 0
+            fi
+            echo "Приложение еще не готово, ожидание 10 секунд..."
+            sleep 10
+          done
+          echo "❌ Приложение не запустилось после 2 минут ожидания"
+          exit 1
+
       - name: Notify Telegram on success
         if: success()
         run: |
