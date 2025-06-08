@@ -19,7 +19,7 @@ public enum ProcessingEventType {
     /**
      * Задача на пересказ
      */
-    RETELLING(true),
+    RETELLING(false),
     /**
      * На публикацию
      */
