@@ -9,14 +9,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.panyukovnn.videoretellingbot.client.OpenAiClient;
 import ru.panyukovnn.videoretellingbot.model.ConveyorTag;
 import ru.panyukovnn.videoretellingbot.model.content.Content;
+import ru.panyukovnn.videoretellingbot.model.content.ContentType;
+import ru.panyukovnn.videoretellingbot.model.content.Source;
 import ru.panyukovnn.videoretellingbot.model.event.ProcessingEvent;
 import ru.panyukovnn.videoretellingbot.model.event.ProcessingEventType;
-import ru.panyukovnn.videoretellingbot.model.retelling.Retelling;
 import ru.panyukovnn.videoretellingbot.property.HardcodedPromptProperties;
-import ru.panyukovnn.videoretellingbot.repository.ContentRepository;
-import ru.panyukovnn.videoretellingbot.repository.RetellingRepository;
+import ru.panyukovnn.videoretellingbot.serivce.domain.ContentDomainService;
 import ru.panyukovnn.videoretellingbot.serivce.domain.ProcessingEventDomainService;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,9 +32,7 @@ class RetellingEventProcessorImplTest {
     @Mock
     private OpenAiClient openAiClient;
     @Mock
-    private ContentRepository contentRepository;
-    @Mock
-    private RetellingRepository retellingRepository;
+    private ContentDomainService contentDomainService;
     @Mock
     private HardcodedPromptProperties hardcodedPromptProperties;
     @Mock
@@ -49,30 +48,40 @@ class RetellingEventProcessorImplTest {
         Content content = new Content();
         content.setId(contentId);
         content.setTitle("Test Title");
+        content.setLink("Test Link");
         content.setContent("Test Content");
+        content.setType(ContentType.ARTICLE);
+        content.setSource(Source.HABR);
+        content.setPublicationDate(LocalDateTime.now());
+        content.setChildBatchId(UUID.randomUUID());
 
         ProcessingEvent processingEvent = new ProcessingEvent();
         processingEvent.setContentId(contentId);
         processingEvent.setType(ProcessingEventType.RETELLING);
         processingEvent.setConveyorTag(ConveyorTag.JAVA_HABR);
 
-        when(contentRepository.findById(contentId)).thenReturn(Optional.of(content));
+        when(contentDomainService.findById(contentId)).thenReturn(Optional.of(content));
         when(hardcodedPromptProperties.getJavaHabrRetelling()).thenReturn("Retelling prompt");
         when(openAiClient.promptingCall(anyString(), anyString(), anyString()))
             .thenReturn("Retelling content");
-        when(retellingRepository.save(any(Retelling.class))).thenAnswer(i -> i.getArgument(0));
+        when(contentDomainService.save(any(Content.class))).thenAnswer(i -> i.getArgument(0));
 
         // Act
         retellingEventProcessor.process(processingEvent);
 
         // Assert
-        verify(contentRepository).findById(contentId);
+        verify(contentDomainService).findById(contentId);
         verify(openAiClient).promptingCall("RETELLING", "Retelling prompt", "Test Content");
-        verify(retellingRepository).save(argThat(retelling ->
-            retelling.getContentId().equals(contentId) &&
-            retelling.getPrompt().equals("Retelling prompt") &&
-            retelling.getAiModel().equals("deepseek-chat") &&
-            retelling.getRetelling().equals("Retelling content")
+        verify(contentDomainService).save(argThat(savedContent ->
+            savedContent.getLink().equals(content.getLink()) &&
+                savedContent.getType().equals(ContentType.ARTICLE) &&
+                savedContent.getSource().equals(Source.HABR) &&
+                savedContent.getTitle().equals(content.getTitle()) &&
+                savedContent.getMeta() == null &&
+                savedContent.getContent().equals("Retelling content") &&
+                savedContent.getPublicationDate().equals(content.getPublicationDate()) &&
+                savedContent.getParentBatchId().equals(content.getChildBatchId()) &&
+                savedContent.getChildBatchId() == null
         ));
         verify(processingEventDomainService).save(argThat(event ->
             event.getType() == ProcessingEventType.PUBLISHING
@@ -87,14 +96,14 @@ class RetellingEventProcessorImplTest {
         processingEvent.setContentId(contentId);
         processingEvent.setConveyorTag(ConveyorTag.JAVA_HABR);
 
-        when(contentRepository.findById(contentId)).thenReturn(Optional.empty());
+        when(contentDomainService.findById(contentId)).thenReturn(Optional.empty());
 
         // Act
         assertThrows(EntityNotFoundException.class, () -> retellingEventProcessor.process(processingEvent));
 
         // Assert
         verify(processingEventDomainService).delete(processingEvent);
-        verifyNoMoreInteractions(openAiClient, retellingRepository);
+        verifyNoMoreInteractions(openAiClient, contentDomainService);
     }
 
     @Test

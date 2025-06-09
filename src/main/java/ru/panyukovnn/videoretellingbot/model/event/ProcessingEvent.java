@@ -32,11 +32,6 @@ public class ProcessingEvent extends AuditableEntity {
      */
     private UUID contentId;
     /**
-     * Идентификатор пересказа
-     * Указывается на этапе пересказа
-     */
-    private UUID retellingId;
-    /**
      * Тип конвейера
      */
     @Enumerated(EnumType.STRING)

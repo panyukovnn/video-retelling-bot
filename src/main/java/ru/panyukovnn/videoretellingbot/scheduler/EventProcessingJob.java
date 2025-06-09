@@ -40,7 +40,7 @@ public class EventProcessingJob {
                 eventProcessorByType.get(event.getType())
                     .process(event);
             } catch (InvalidProcessingEventException e) {
-                log.error("Некорректный ProcessingEvent: {}. contentId: {}. retellingId: {}. Сообщение: {}", event.getType(), event.getContentId(), event.getRetellingId(), e.getMessage(), e);
+                log.error("Некорректный ProcessingEvent: {}. Сообщение: {}", jsonUtil.toJson(event), e.getMessage(), e);
 
                 processingEventDomainService.delete(event);
             } catch (Exception e) {

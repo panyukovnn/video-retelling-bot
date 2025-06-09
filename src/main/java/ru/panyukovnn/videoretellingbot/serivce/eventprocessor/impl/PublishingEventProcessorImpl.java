@@ -46,12 +46,12 @@ public class PublishingEventProcessorImpl implements EventProcessor {
 
             tgSender.sendMessage(publishingChannel.getChatId(), publishingChannel.getTopicId(), formattedMessage);
 
-            log.info("Успешно выполнена отправка reduced материала. Название материала: {}. contentId: {}. processingEvent: {}",
+            log.info("Успешно выполнена отправка материала. Название материала: {}. contentId: {}. processingEvent: {}",
                 contentTitle, content.getId(), jsonUtil.toJson(processingEvent));
 
             processingEvent.setType(ProcessingEventType.PUBLISHED);
         } catch (Exception e) {
-            log.error("Ошибка при отправке reduced материала в телеграм: {}", e.getMessage(), e);
+            log.error("Ошибка при отправке материала в телеграм: {}", e.getMessage(), e);
 
             processingEvent.setType(ProcessingEventType.PUBLICATION_ERROR);
         } finally {

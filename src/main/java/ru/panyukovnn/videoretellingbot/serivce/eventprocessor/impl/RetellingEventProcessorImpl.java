@@ -10,10 +10,8 @@ import ru.panyukovnn.videoretellingbot.model.ConveyorTag;
 import ru.panyukovnn.videoretellingbot.model.content.Content;
 import ru.panyukovnn.videoretellingbot.model.event.ProcessingEvent;
 import ru.panyukovnn.videoretellingbot.model.event.ProcessingEventType;
-import ru.panyukovnn.videoretellingbot.model.retelling.Retelling;
 import ru.panyukovnn.videoretellingbot.property.HardcodedPromptProperties;
-import ru.panyukovnn.videoretellingbot.repository.ContentRepository;
-import ru.panyukovnn.videoretellingbot.repository.RetellingRepository;
+import ru.panyukovnn.videoretellingbot.serivce.domain.ContentDomainService;
 import ru.panyukovnn.videoretellingbot.serivce.domain.ProcessingEventDomainService;
 import ru.panyukovnn.videoretellingbot.serivce.eventprocessor.EventProcessor;
 import ru.panyukovnn.videoretellingbot.util.JsonUtil;
@@ -25,8 +23,7 @@ public class RetellingEventProcessorImpl implements EventProcessor {
 
     private final JsonUtil jsonUtil;
     private final OpenAiClient openAiClient;
-    private final ContentRepository contentRepository;
-    private final RetellingRepository retellingRepository;
+    private final ContentDomainService contentDomainService;
     private final HardcodedPromptProperties hardcodedPromptProperties;
     private final ProcessingEventDomainService processingEventDomainService;
 
@@ -49,23 +46,28 @@ public class RetellingEventProcessorImpl implements EventProcessor {
 
         String retellingResponse = openAiClient.promptingCall(processingEvent.getType().name(), prompt, content.getContent());
 
-        Retelling retelling = retellingRepository.save(Retelling.builder()
-            .contentId(content.getId())
-            .prompt(prompt)
-            .aiModel("deepseek-chat")
-            .retelling(retellingResponse)
-            .build()
-        );
+        Content retelledContent = Content.builder()
+            .link(content.getLink())
+            .type(content.getType())
+            .source(content.getSource())
+            .title(content.getTitle())
+            .meta(null)
+            .publicationDate(content.getPublicationDate())
+            .content(retellingResponse)
+            .parentBatchId(content.getChildBatchId())
+            .childBatchId(null)
+            .build();
+        contentDomainService.save(retelledContent);
 
         processingEvent.setType(ProcessingEventType.PUBLISHING);
-        processingEvent.setRetellingId(retelling.getId());
+        processingEvent.setContentId(retelledContent.getId());
         processingEventDomainService.save(processingEvent);
 
         log.info("Успешно выполнен пересказ материала по тегу: {}. Название материала: {}", processingEvent.getType().name(), content.getTitle());
     }
 
     private Content findContent(ProcessingEvent processingEvent) {
-        Content content = contentRepository.findById(processingEvent.getContentId())
+        Content content = contentDomainService.findById(processingEvent.getContentId())
             .orElse(null);
 
         if (content == null) {

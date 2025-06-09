@@ -47,3 +47,9 @@ databaseChangeLog:
   - include:
       file: 14.update_contents.yml
       relativeToChangelogFile: true
+  - include:
+      file: 15.update_retellings.yml
+      relativeToChangelogFile: true
+  - include:
+      file: 16.drop_retellings.yml
+      relativeToChangelogFile: true
