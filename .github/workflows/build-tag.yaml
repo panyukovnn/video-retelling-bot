@@ -41,11 +41,11 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ghcr.io/$GITHUB_REPOSITORY:${{ github.ref_name }} -t ghcr.io/$GITHUB_REPOSITORY:latest .
+          docker build -t ghcr.io/panyukovnn/${{ needs.get-repo-name.outputs.repo }}:${{ github.ref_name }} -t ghcr.io/panyukovnn/${{ needs.get-repo-name.outputs.repo }}:latest .
 
       - name: Push Docker image
         run: |
-          docker push ghcr.io/$GITHUB_REPOSITORY:${{ github.ref_name }}
+          docker push ghcr.io/panyukovnn/${{ needs.get-repo-name.outputs.repo }}:${{ github.ref_name }}
 
       - name: Notify Telegram on success
         if: success()
