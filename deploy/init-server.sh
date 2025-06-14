@@ -2,7 +2,7 @@
 
 # Конфигурация
 SSH_CONFIG=nvpnt
-REMOTE_DIR=retelling-bot
+REMOTE_DIR=video-retelling-bot
 
 # Проверка на наличие файлов рядом со скриптом
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

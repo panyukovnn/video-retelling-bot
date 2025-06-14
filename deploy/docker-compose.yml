@@ -2,8 +2,8 @@ version: '3.3'
 
 services:
   retelling-bot:
-    image: ghcr.io/panyukovnn/retelling-bot:${APP_TAG}
-    container_name: retelling-bot
+    image: ghcr.io/panyukovnn/video-retelling-bot:${APP_TAG}
+    container_name: video-retelling-bot
     ports:
       - 8082:8082
     extra_hosts:
