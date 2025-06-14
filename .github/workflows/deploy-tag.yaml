@@ -13,6 +13,7 @@ jobs:
         run: echo "repo=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)" >> $GITHUB_OUTPUT
 
   deploy:
+    needs: get-repo-name
     runs-on: ubuntu-latest
     steps:
       - name: Cache Gradle
