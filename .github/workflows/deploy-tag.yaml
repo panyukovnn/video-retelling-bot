@@ -4,6 +4,14 @@ on:
   workflow_dispatch:
 
 jobs:
+  get-repo-name:
+    runs-on: ubuntu-latest
+    outputs:
+      repo: ${{ steps.get-name.outputs.repo }}
+    steps:
+      - id: get-name
+        run: echo "repo=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)" >> $GITHUB_OUTPUT
+
   deploy:
     runs-on: ubuntu-latest
     steps:
@@ -26,7 +34,7 @@ jobs:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SSH_USER: ${{ secrets.NVPN_SSH_USER }}
           IMAGE_TAG: ${{ steps.extract_tag.outputs.tag }}
-          REMOTE_DIR: retelling-bot
+          REMOTE_DIR: ${{ needs.get-repo-name.outputs.repo }}
         run: |
           # Подключаемся к серверу и выполняем скрипт
           echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
@@ -43,7 +51,7 @@ jobs:
           echo "Ожидание готовности приложения..."
           for i in {1..12}; do
             echo "Попытка $i из 12..."
-            if curl -s "http://${SERVER_IP}:8082/conveyor/actuator/health" | grep -q '"status":"UP"'; then
+            if curl -s "http://${SERVER_IP}:8082/${{ needs.get-repo-name.outputs.repo }}/actuator/health" | grep -q '"status":"UP"'; then
               echo "✅ Приложение успешно запущено"
               exit 0
             fi
@@ -58,11 +66,11 @@ jobs:
         run: |
           curl -s -X POST https://api.telegram.org/bot${{ secrets.NOTIFICATION_TELEGRAM_BOT_TOKEN }}/sendMessage \
             -d chat_id=${{ secrets.NOTIFICATION_TELEGRAM_CHAT_ID }} \
-            -d text="✅ retelling-bot %0A Успешно выполнен deploy ${{ github.event.inputs.image_tag }}"
+            -d text="✅ ${{ needs.get-repo-name.outputs.repo }} %0A Успешно выполнен deploy ${{ github.event.inputs.image_tag }}"
 
       - name: Notify Telegram on failure
         if: failure()
         run: |
           curl -s -X POST https://api.telegram.org/bot${{ secrets.NOTIFICATION_TELEGRAM_BOT_TOKEN }}/sendMessage \
             -d chat_id=${{ secrets.NOTIFICATION_TELEGRAM_CHAT_ID }} \
-            -d text="❌ retelling-bot %0A Ошибка при деплое ${{ github.event.inputs.image_tag }} %0A Посмотреть лог: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            -d text="❌ ${{ needs.get-repo-name.outputs.repo }} %0A Ошибка при деплое ${{ github.event.inputs.image_tag }} %0A Посмотреть лог: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

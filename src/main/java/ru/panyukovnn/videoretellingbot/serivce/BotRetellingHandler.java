@@ -1,15 +1,12 @@
-package ru.panyukovnn.videoretellingbot.serivce.bot;
+package ru.panyukovnn.videoretellingbot.serivce;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.panyukovnn.videoretellingbot.client.OpenAiClient;
+import ru.panyukovnn.videoretellingbot.dto.YoutubeSubtitles;
 import ru.panyukovnn.videoretellingbot.exception.RetellingException;
-import ru.panyukovnn.videoretellingbot.model.content.Content;
-import ru.panyukovnn.videoretellingbot.property.HardcodedPromptProperties;
-import ru.panyukovnn.videoretellingbot.repository.ContentRepository;
-import ru.panyukovnn.videoretellingbot.serivce.loader.DataLoader;
-import ru.panyukovnn.videoretellingbot.serivce.telegram.TgSender;
+import ru.panyukovnn.videoretellingbot.property.PromptProperties;
 import ru.panyukovnn.videoretellingbot.util.YoutubeLinkHelper;
 
 @Slf4j
@@ -19,9 +16,8 @@ public class BotRetellingHandler {
 
     private final TgSender tgSender;
     private final OpenAiClient openAiClient;
-    private final DataLoader youtubeSubtitlesLoader;
-    private final HardcodedPromptProperties hardcodedPromptProperties;
-    private final ContentRepository contentRepository;
+    private final PromptProperties promptProperties;
+    private final YoutubeSubtitlesLoader youtubeSubtitlesLoader;
 
     public void handleRetelling(Long chatId, String inputMessage) {
         if (!YoutubeLinkHelper.isValidYoutubeUrl(inputMessage)) {
@@ -32,22 +28,20 @@ public class BotRetellingHandler {
 
         tgSender.sendMessage(chatId, "Извлекаю содержание");
 
-        Content content = youtubeSubtitlesLoader.load(cleanedYoutubeLink);
+        YoutubeSubtitles youtubeSubtitles = youtubeSubtitlesLoader.load(cleanedYoutubeLink);
 
-        contentRepository.save(content);
-
-        String subtitles = content.getContent();
+        String subtitles = youtubeSubtitles.getSubtitles();
 
         tgSender.sendMessage(chatId, "Формирую статью (это может занимать до 2х минут)");
 
-        String retellingResponse = openAiClient.promptingCall("retelling_from_bot", hardcodedPromptProperties.getYoutubeRetelling(), subtitles);
+        String retellingResponse = openAiClient.promptingCall("retelling_from_bot", promptProperties.getYoutubeRetelling(), subtitles);
 
         try {
             tgSender.sendMessage(chatId, retellingResponse);
 
             log.info("Пересказ успешно выполнен и доставлен");
         } catch (RetellingException e) {
-            log.warn("Ошибка бизнес логики. id: {}. Сообщение: {}", ((RetellingException) e).getId(), e.getMessage(), e);
+            log.warn("Ошибка бизнес логики. id: {}. Сообщение: {}", e.getId(), e.getMessage(), e);
 
             tgSender.sendMessage(chatId, "В процессе работы возникла ошибка: " + e.getMessage());
         } catch (Exception e) {

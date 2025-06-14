@@ -7,11 +7,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.panyukovnn.videoretellingbot.dto.Lang;
+import ru.panyukovnn.videoretellingbot.dto.YoutubeSubtitles;
 import ru.panyukovnn.videoretellingbot.exception.RetellingException;
-import ru.panyukovnn.videoretellingbot.model.content.Content;
-import ru.panyukovnn.videoretellingbot.model.content.ContentType;
-import ru.panyukovnn.videoretellingbot.model.content.Lang;
-import ru.panyukovnn.videoretellingbot.model.content.Source;
+import ru.panyukovnn.videoretellingbot.serivce.YoutubeSubtitlesLoader;
 import ru.panyukovnn.videoretellingbot.util.SubtitlesFileNameGenerator;
 import ru.panyukovnn.videoretellingbot.util.YtDlpProcessBuilderCreator;
 
@@ -96,17 +95,12 @@ class YoutubeSubtitlesLoaderTest {
             .thenReturn(processBuilderSuccess);
         when(ytDlpProcessBuilderCreator.createProcessBuilder(eq(videoUrl), eq("ru"), eq(true), anyString()))
             .thenReturn(processBuilderNoSubtitles);
-        when(ytDlpProcessBuilderCreator.createProcessBuilder(eq(videoUrl), eq("en"), eq(false), anyString()))
-            .thenReturn(processBuilderNoSubtitles);
-        when(ytDlpProcessBuilderCreator.createProcessBuilder(eq(videoUrl), eq("en"), eq(true), anyString()))
-            .thenReturn(processBuilderNoSubtitles);
         when(processBuilderSuccess.start()).thenReturn(process);
         when(process.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
         when(process.waitFor()).thenReturn(0);
 
         when(processBuilderNoSubtitles.start()).thenReturn(processNoSubtitles);
         when(processNoSubtitles.getInputStream()).thenReturn(new ByteArrayInputStream("There are no subtitles for the requested languages".getBytes()));
-        when(processNoSubtitles.waitFor()).thenReturn(0);
 
         // Создаем файл с тем же именем, которое будет использоваться в YoutubeSubtitlesLoader
         Path expectedFile = subtitlesDir.resolve(fileName);
@@ -114,20 +108,19 @@ class YoutubeSubtitlesLoaderTest {
 
         try {
             // Act
-            Content content = loader.load(videoUrl);
+            YoutubeSubtitles youtubeSubtitles = loader.load(videoUrl);
+            String rawSubtitles = youtubeSubtitles.getSubtitles();
 
             // Assert
             assertAll(
-                () -> assertEquals(videoUrl, content.getLink()),
-                () -> assertEquals(ContentType.SUBTITLES, content.getType()),
-                () -> assertEquals(Source.YOUTUBE, content.getSource()),
-                () -> assertEquals(Lang.RU, content.getLang()),
-                () -> assertTrue(content.getContent().contains("Привет, это тестовые субтитры")),
-                () -> assertTrue(content.getContent().contains("Это вторая строка субтитров")),
-                () -> assertTrue(content.getContent().contains("И третья строка")),
-                () -> assertFalse(content.getContent().contains("<")),
-                () -> assertFalse(content.getContent().contains("00:00:01.000")),
-                () -> assertFalse(content.getContent().contains("align:start"))
+                () -> assertEquals(videoUrl, youtubeSubtitles.getLink()),
+                () -> assertEquals(Lang.RU, youtubeSubtitles.getLang()),
+                () -> assertTrue(rawSubtitles.contains("Привет, это тестовые субтитры")),
+                () -> assertTrue(rawSubtitles.contains("Это вторая строка субтитров")),
+                () -> assertTrue(rawSubtitles.contains("И третья строка")),
+                () -> assertFalse(rawSubtitles.contains("<")),
+                () -> assertFalse(rawSubtitles.contains("00:00:01.000")),
+                () -> assertFalse(rawSubtitles.contains("align:start"))
             );
         } finally {
             // Очищаем созданный файл
@@ -193,14 +186,5 @@ class YoutubeSubtitlesLoaderTest {
             () -> assertEquals("48ae", exception.getId()),
             () -> assertEquals("Не удалось загрузить субтитры для указанного видео", exception.getMessage())
         );
-    }
-
-    @Test
-    void when_getSource_then_returnYoutube() {
-        // Act
-        Source source = loader.getSource();
-
-        // Assert
-        assertEquals(Source.YOUTUBE, source);
     }
 } 

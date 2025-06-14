@@ -8,11 +8,8 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "retelling.hardcoded-prompts")
-public class HardcodedPromptProperties {
+@ConfigurationProperties(prefix = "retelling.prompt")
+public class PromptProperties {
 
     private String youtubeRetelling;
-    private String javaHabrRateMaterial;
-    private String javaHabrRetelling;
-    private String tgMessageBatchRetelling;
 }

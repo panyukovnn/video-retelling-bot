@@ -11,9 +11,9 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import ru.panyukovnn.videoretellingbot.dto.UpdateParams;
 import ru.panyukovnn.videoretellingbot.exception.RetellingException;
-import ru.panyukovnn.videoretellingbot.serivce.bot.BotRetellingHandler;
-import ru.panyukovnn.videoretellingbot.serivce.bot.ClientService;
-import ru.panyukovnn.videoretellingbot.serivce.telegram.TgSender;
+import ru.panyukovnn.videoretellingbot.serivce.BotRetellingHandler;
+import ru.panyukovnn.videoretellingbot.serivce.TgSender;
+import ru.panyukovnn.videoretellingbot.serivce.domain.ClientDomainService;
 
 import java.time.Instant;
 import java.util.*;
@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
 public class TgBotListener {
 
     private final TgSender tgSender;
-    private final ClientService clientService;
+    private final ClientDomainService clientDomainService;
     private final BotRetellingHandler botRetellingHandler;
 
     @Async("tgListenerExecutor")
@@ -61,7 +61,7 @@ public class TgBotListener {
                     return CompletableFuture.completedFuture(null);
                 }
 
-                clientService.save(updateParams);
+                clientDomainService.save(updateParams);
 
                 botRetellingHandler.handleRetelling(updateParams.getChatId(), updateParams.getInput());
             } catch (RetellingException e) {

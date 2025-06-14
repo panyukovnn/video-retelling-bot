@@ -1,4 +1,4 @@
-package ru.panyukovnn.videoretellingbot.serivce.telegram;
+package ru.panyukovnn.videoretellingbot.serivce;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

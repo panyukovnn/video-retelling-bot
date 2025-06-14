@@ -1,4 +1,4 @@
-package ru.panyukovnn.videoretellingbot.serivce.bot;
+package ru.panyukovnn.videoretellingbot.serivce.domain;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -8,11 +8,11 @@ import ru.panyukovnn.videoretellingbot.repository.ClientRepository;
 
 @Service
 @RequiredArgsConstructor
-public class ClientService {
+public class ClientDomainService {
 
     private final ClientRepository clientRepository;
 
-    public Client save(UpdateParams updateParams) {
+    public void save(UpdateParams updateParams) {
         Client client = clientRepository.findByTgUserId(updateParams.getUserId())
             .orElseGet(() -> Client.builder()
                 .tgUserId(updateParams.getUserId())
@@ -25,7 +25,7 @@ public class ClientService {
 
         client.setRetellingsCount(client.getRetellingsCount() + 1L);
 
-        return clientRepository.save(client);
+        clientRepository.save(client);
     }
 
 }

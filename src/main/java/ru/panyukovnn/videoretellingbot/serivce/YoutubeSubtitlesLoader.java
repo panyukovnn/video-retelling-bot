@@ -1,15 +1,12 @@
-package ru.panyukovnn.videoretellingbot.serivce.loader.impl;
+package ru.panyukovnn.videoretellingbot.serivce;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
+import ru.panyukovnn.videoretellingbot.dto.Lang;
+import ru.panyukovnn.videoretellingbot.dto.YoutubeSubtitles;
 import ru.panyukovnn.videoretellingbot.exception.RetellingException;
-import ru.panyukovnn.videoretellingbot.model.content.Content;
-import ru.panyukovnn.videoretellingbot.model.content.ContentType;
-import ru.panyukovnn.videoretellingbot.model.content.Lang;
-import ru.panyukovnn.videoretellingbot.model.content.Source;
-import ru.panyukovnn.videoretellingbot.serivce.loader.DataLoader;
 import ru.panyukovnn.videoretellingbot.util.SubtitlesFileNameGenerator;
 import ru.panyukovnn.videoretellingbot.util.YtDlpProcessBuilderCreator;
 
@@ -30,7 +27,7 @@ import java.util.concurrent.Executors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class YoutubeSubtitlesLoader implements DataLoader {
+public class YoutubeSubtitlesLoader {
 
     private static final String SUBTITLES_LANG_RU = "ru";
     private static final String SUBTITLES_LANG_EN = "en";
@@ -39,7 +36,7 @@ public class YoutubeSubtitlesLoader implements DataLoader {
     private final YtDlpProcessBuilderCreator ytDlpProcessBuilderCreator;
     private final SubtitlesFileNameGenerator subtitlesFileNameGenerator;
 
-    public Content load(String link) {
+    public YoutubeSubtitles load(String link) {
         log.info("Начинаю загрузку субтитров из youtube видео по ссылке: {}", link);
 
         cleanSubtitlesFolder();
@@ -56,13 +53,10 @@ public class YoutubeSubtitlesLoader implements DataLoader {
 
             String subtitles = String.join("\n", cleanedFileLines);
 
-            return Content.builder()
+            return YoutubeSubtitles.builder()
                 .link(link)
                 .lang(lang)
-                .type(ContentType.SUBTITLES)
-                .source(getSource())
-                .meta(null)
-                .content(subtitles)
+                .subtitles(subtitles)
                 .build();
         } catch (RetellingException e) {
             throw e;
@@ -73,11 +67,6 @@ public class YoutubeSubtitlesLoader implements DataLoader {
         }
     }
 
-    @Override
-    public Source getSource() {
-        return Source.YOUTUBE;
-    }
-
     /**
      * Пытаемся загрузить субтитры с разными языками, при этом проверяем наличие как встроенных, так и автогенерируемых
      *
@@ -85,26 +74,39 @@ public class YoutubeSubtitlesLoader implements DataLoader {
      * @return пара, где первый параметр - имя файла с загруженными субтитрами, второй параметр - язык
      */
     private Pair<String, Lang> loadSubtitles(String videoUrl) {
-        ExecutorService executorService = Executors.newFixedThreadPool(4);
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         try {
             CompletableFuture<Optional<String>> ruSubtitles = CompletableFuture.supplyAsync(() -> tryDownloadSubtitles(videoUrl, SUBTITLES_LANG_RU, false), executorService);
             CompletableFuture<Optional<String>> autoGenRuSubtitles = CompletableFuture.supplyAsync(() -> tryDownloadSubtitles(videoUrl, SUBTITLES_LANG_RU, true), executorService);
-            CompletableFuture<Optional<String>> enSubtitles = CompletableFuture.supplyAsync(() -> tryDownloadSubtitles(videoUrl, SUBTITLES_LANG_EN, false), executorService);
-            CompletableFuture<Optional<String>> autoGenEnSubtitles = CompletableFuture.supplyAsync(() -> tryDownloadSubtitles(videoUrl, SUBTITLES_LANG_EN, true), executorService);
 
-            return CompletableFuture.allOf(ruSubtitles, autoGenRuSubtitles, enSubtitles, autoGenEnSubtitles)
+            Pair<String, Lang> ruSubs = CompletableFuture.allOf(ruSubtitles, autoGenRuSubtitles)
                 .thenApply(action -> {
                     Optional<String> optionalRuSubs = ruSubtitles.getNow(Optional.empty());
                     Optional<String> optionalRuAutoGenSubs = autoGenRuSubtitles.getNow(Optional.empty());
+
+                    Optional<Pair<String, Lang>> stringLangPair = optionalRuSubs.map(it -> Pair.of(it, Lang.RU));
+                    return stringLangPair
+                        .orElseGet(() -> optionalRuAutoGenSubs.map(it -> Pair.of(it, Lang.RU))
+                            .orElse(null));
+                })
+                .get();
+
+            if (ruSubs != null) {
+                return ruSubs;
+            }
+
+            CompletableFuture<Optional<String>> enSubtitles = CompletableFuture.supplyAsync(() -> tryDownloadSubtitles(videoUrl, SUBTITLES_LANG_EN, false), executorService);
+            CompletableFuture<Optional<String>> autoGenEnSubtitles = CompletableFuture.supplyAsync(() -> tryDownloadSubtitles(videoUrl, SUBTITLES_LANG_EN, true), executorService);
+
+            return CompletableFuture.allOf(enSubtitles, autoGenEnSubtitles)
+                .thenApply(action -> {
                     Optional<String> optionalEnSubs = enSubtitles.getNow(Optional.empty());
                     Optional<String> optionalEnAutoGenSubs = autoGenEnSubtitles.getNow(Optional.empty());
 
-                    return optionalRuSubs.map(it -> Pair.of(it, Lang.RU))
-                        .orElseGet(() -> optionalRuAutoGenSubs.map(it -> Pair.of(it, Lang.RU))
-                            .orElseGet(() -> optionalEnSubs.map(it -> Pair.of(it, Lang.EN))
+                    return optionalEnSubs.map(it -> Pair.of(it, Lang.EN))
                                 .orElseGet(() -> optionalEnAutoGenSubs.map(it -> Pair.of(it, Lang.EN))
-                                    .orElseThrow(() -> new RetellingException("48ae", "Не удалось загрузить субтитры для указанного видео")))));
+                                    .orElseThrow(() -> new RetellingException("48ae", "Не удалось загрузить субтитры для указанного видео")));
                 })
                 .get();
         } catch (ExecutionException | InterruptedException e) {

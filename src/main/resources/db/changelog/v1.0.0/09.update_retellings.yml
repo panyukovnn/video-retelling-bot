@@ -1,8 +1,0 @@
-databaseChangeLog:
-  - changeSet:
-      id: "09.update_retellings.yml"
-      author: "Panyukov NN"
-      changes:
-        - dropColumn:
-            tableName: retellings
-            columnName: tag

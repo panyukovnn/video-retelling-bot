@@ -6,7 +6,16 @@ on:
       - '*'
 
 jobs:
+  get-repo-name:
+    runs-on: ubuntu-latest
+    outputs:
+      repo: ${{ steps.get-name.outputs.repo }}
+    steps:
+      - id: get-name
+        run: echo "repo=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)" >> $GITHUB_OUTPUT
+
   build-and-publish:
+    needs: get-repo-name
     runs-on: ubuntu-latest
 
     permissions:
@@ -32,22 +41,22 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ghcr.io/panyukovnn/retelling-bot:${{ github.ref_name }} -t ghcr.io/panyukovnn/retelling-bot:latest .
+          docker build -t ghcr.io/$GITHUB_REPOSITORY:${{ github.ref_name }} -t ghcr.io/$GITHUB_REPOSITORY:latest .
 
       - name: Push Docker image
         run: |
-          docker push ghcr.io/panyukovnn/retelling-bot:${{ github.ref_name }}
+          docker push ghcr.io/$GITHUB_REPOSITORY:${{ github.ref_name }}
 
       - name: Notify Telegram on success
         if: success()
         run: |
           curl -s -X POST https://api.telegram.org/bot${{ secrets.NOTIFICATION_TELEGRAM_BOT_TOKEN }}/sendMessage \
             -d chat_id=${{ secrets.NOTIFICATION_TELEGRAM_CHAT_ID }} \
-            -d text="✅ retelling-bot %0A Успешно выполнена сборка тега ${{ github.ref_name }}"
+            -d text="✅ ${{ needs.get-repo-name.outputs.repo }} %0A Успешно выполнена сборка тега ${{ github.ref_name }}"
 
       - name: Notify Telegram on failure
         if: failure()
         run: |
           curl -s -X POST https://api.telegram.org/bot${{ secrets.NOTIFICATION_TELEGRAM_BOT_TOKEN }}/sendMessage \
             -d chat_id=${{ secrets.NOTIFICATION_TELEGRAM_CHAT_ID }} \
-            -d text="❌ retelling-bot %0A Ошибка при сборке тега ${{ github.ref_name }} %0A Посмотреть лог: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            -d text="❌ ${{ needs.get-repo-name.outputs.repo }} %0A Ошибка при сборке тега ${{ github.ref_name }} %0A Посмотреть лог: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

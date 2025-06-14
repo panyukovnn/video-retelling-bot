@@ -1,8 +1,0 @@
-databaseChangeLog:
-  - changeSet:
-      id: "15.update_processing_events.yml"
-      author: "Panyukov NN"
-      changes:
-        - dropColumn:
-            tableName: processing_events
-            columnName: retelling_id

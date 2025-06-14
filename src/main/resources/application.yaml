@@ -6,13 +6,13 @@ server:
 
 spring:
   application:
-    name: conveyor
+    name: video-retelling-bot
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     hikari:
-      schema: retelling_bot
+      schema: video_retelling_bot
       connection-init-sql: CREATE SCHEMA IF NOT EXISTS ${spring.datasource.hikari.schema};
   liquibase:
     enabled: true
@@ -30,52 +30,14 @@ spring:
           model: deepseek-chat
           temperature: 0.0
           max-tokens: 8000 # Токенов специально немного меньше максимума
-  cloud:
-    openfeign:
-      client:
-        config:
-          tg-chats-collector:
-            connectTimeout: 600000
-            readTimeout: 600000
 
 retelling:
-  executors:
-    tg-listener:
-      threads: 10
-      queue-capacity: 1000
-  scheduled-jobs:
-    source-parsing:
-      habr-cron: 0 0 * * * *
-    event-processing:
-      cron: "*/10 * * * * *"
-  rate:
-    threshold: 70 # Оценка материала должна быть выше 70% для его публикации
-  data-finder:
-    habr:
-      period-of-days-to-look-for: 1
-
-  hardcoded-publishing-channels:
-    chat-id: ${PUBLISHING_CHAT_ID}
-    rate-tg-topic-id: ${RATE_TG_TOPIC_ID}
-    debug-topic-id: ${DEBUG_TG_TOPIC_ID}
-    java-habr-topic-id: ${JAVA_RETELLING_TG_TOPIC_ID}
-    tg-message-batch-topic-id: ${TG_MESSAGE_BATCH_RETELLING_TG_TOPIC_ID}
-
-  hardcoded-prompts:
+  prompt:
     youtube-retelling: ${YOUTUBE_RETELLING_PROMPT}
-    java-habr-rate-material: ${JAVA_HABR_RATE_MATERIAL_PROMPT}
-    java-habr-retelling: ${JAVA_HABR_RETELLING_PROMPT}
-    tg-message-batch-retelling: ${TG_MESSAGE_BATCH_RETELLING_PROMPT}
-
-  integration:
-    tg-chats-collector:
-      host: ${INTEGRATION_TG_CHATS_COLLECTOR_HOST}
-
 
 bot:
   name: ${BOT_NAME}
   token: ${BOT_TOKEN}
-  admin-ids: ${BOT_ADMIN_IDS}
 
 logging:
   level:
