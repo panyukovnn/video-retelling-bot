@@ -18,11 +18,6 @@ public class SchedulerConfig {
         return createElasticScheduler(10, 100);
     }
 
-    @Bean(destroyMethod = "shutdown")
-    public ExecutorService promptingExecutor() {
-        return createElasticScheduler(30, 1000);
-    }
-
     private static ThreadPoolExecutor createElasticScheduler(int threadsNumber, int queueCapacity) {
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
             threadsNumber, threadsNumber,

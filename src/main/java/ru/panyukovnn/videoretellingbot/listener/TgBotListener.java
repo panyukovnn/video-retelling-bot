@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
+import ru.panyukovnn.longpollingtgbotstarter.service.TgSender;
 import ru.panyukovnn.videoretellingbot.dto.UpdateParams;
 import ru.panyukovnn.videoretellingbot.exception.RetellingException;
 import ru.panyukovnn.videoretellingbot.serivce.BotRetellingHandler;
-import ru.panyukovnn.videoretellingbot.serivce.TgSender;
 import ru.panyukovnn.videoretellingbot.serivce.domain.ClientDomainService;
 
 import java.time.Instant;
@@ -67,11 +67,11 @@ public class TgBotListener {
             } catch (RetellingException e) {
                 log.error("Ошибка бизнес логики. id: {}. Сообщение: {}", e.getId(), e.getMessage(), e);
 
-                tgSender.sendMessage(updateParams.getChatId(), "В процессе работы возникла ошибка: " + e.getMessage());
+                tgSender.send(updateParams.getChatId(), "В процессе работы возникла ошибка: " + e.getMessage());
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
 
-                tgSender.sendMessage(updateParams.getChatId(), "Непредвиденная ошибка при отправке сообщения");
+                tgSender.send(updateParams.getChatId(), "Непредвиденная ошибка при отправке сообщения");
             }
         } finally {
             MDC.clear();

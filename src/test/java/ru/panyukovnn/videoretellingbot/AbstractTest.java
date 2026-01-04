@@ -4,11 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
-import ru.panyukovnn.videoretellingbot.client.OpenAiClient;
-import ru.panyukovnn.videoretellingbot.config.TgBotApi;
+import ru.panyukovnn.longpollingtgbotstarter.config.TgBotApi;
+import ru.panyukovnn.videoretellingbot.client.AiClient;
 import ru.panyukovnn.videoretellingbot.listener.TgBotListener;
 import ru.panyukovnn.videoretellingbot.repository.ClientRepository;
-import ru.panyukovnn.videoretellingbot.serivce.YoutubeSubtitlesLoader;
+import ru.panyukovnn.videoretellingbot.tool.YtSubtitlesTool;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -22,7 +22,7 @@ public abstract class AbstractTest {
     @MockBean
     protected TgBotApi tgBotApi;
     @MockBean
-    protected OpenAiClient openAiClient;
+    protected AiClient aiClient;
     @MockBean
-    protected YoutubeSubtitlesLoader youtubeSubtitlesLoader;
+    protected YtSubtitlesTool ytSubtitlesTool;
 }

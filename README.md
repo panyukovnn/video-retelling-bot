@@ -1,4 +1,9 @@
 
+# TODO дописать
+
+- теперь для выгрузки требуется yt-subtitles-loader
+- 
+
 # Youtube video summarizer TG bot
 
 Алгоритм работы бота:
