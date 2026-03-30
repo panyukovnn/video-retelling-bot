@@ -26,12 +26,12 @@
 
 ### 2.1 Миграции БД
 
-- [ ] Добавить в миграцию `v1.1.0/changelog.yml` (вместе с Feature 1):
+- [x] Добавить в миграцию `v1.1.0/changelog.yml` (вместе с Feature 1):
   - В таблицу `clients` добавить поля:
     - `daily_retellings_used` INT DEFAULT 0
     - `daily_retellings_reset_date` DATE NULLABLE
-- [ ] Таблица `star_payments`:
-  - `id` UUID PK
+- [x] Таблица `star_payments`:
+- `id` UUID PK
   - `client_id` UUID FK → `clients.id`
   - `telegram_charge_id` VARCHAR UNIQUE — ID транзакции от Telegram
   - `video_url` VARCHAR — за какое видео оплачено

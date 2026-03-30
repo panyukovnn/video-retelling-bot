@@ -53,14 +53,14 @@
 
 ### 1.4 Tool загрузки субтитров
 
-- [ ] Создать `SubtitlesLoaderTool` (пакет `tool`) — Spring-компонент с методом:
+- [x] Создать `SubtitlesLoaderTool` (пакет `tool`) — Spring-компонент с методом:
   ```java
   @Tool(description = "Загружает субтитры YouTube-видео по URL")
   public String loadSubtitles(String videoUrl)
   ```
   Внутри — текущая логика из `YtSubtitlesTool.loadSubtitles()`
-- [ ] Зарегистрировать `SubtitlesLoaderTool` в `ChatClient` через `.defaultTools()`
-- [ ] Удалить прямой вызов `YtSubtitlesTool` из `BotRetellingHandler`
+- [x] Зарегистрировать `SubtitlesLoaderTool` в `ChatClient` через `.defaultTools()`
+- [x] Удалить прямой вызов `YtSubtitlesTool` из `BotRetellingHandler`
 
 ---
 

@@ -7,7 +7,6 @@ import ru.panyukovnn.longpollingtgbotstarter.service.TgSender;
 import ru.panyukovnn.videoretellingbot.client.AiClient;
 import ru.panyukovnn.videoretellingbot.exception.RetellingException;
 import ru.panyukovnn.videoretellingbot.property.PromptProperties;
-import ru.panyukovnn.videoretellingbot.tool.YtSubtitlesTool;
 import ru.panyukovnn.videoretellingbot.util.YoutubeLinkHelper;
 
 @Slf4j
@@ -17,7 +16,6 @@ public class BotRetellingHandler {
 
     private final TgSender tgSender;
     private final AiClient aiClient;
-    private final YtSubtitlesTool ytSubtitlesTool;
     private final PromptProperties promptProperties;
 
     public void handleRetelling(Long chatId, String inputMessage) {
@@ -27,11 +25,9 @@ public class BotRetellingHandler {
 
         tgSender.send(chatId, "Извлекаю содержание");
 
-        String subtitles = ytSubtitlesTool.loadSubtitles(inputMessage);
-
         tgSender.send(chatId, "Формирую пересказ (это может занимать до 2х минут)");
 
-        String retellingResponse = aiClient.promptingCall("retelling_from_bot", promptProperties.getYoutubeRetelling(), subtitles);
+        String retellingResponse = aiClient.promptingCall("retelling_from_bot", promptProperties.getYoutubeRetelling(), inputMessage);
 
         try {
             tgSender.send(chatId, retellingResponse);
