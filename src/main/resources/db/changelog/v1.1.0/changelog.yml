@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: release/1.1.0
+      author: "Panyukov NN"
+      changes:
+        - tagDatabase:
+            tag: release/1.1.0
+  - include:
+      file: 01.create_dialog_session.yml
+      relativeToChangelogFile: true
+  - include:
+      file: 02.create_dialog_message.yml
+      relativeToChangelogFile: true

@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: "02.create_dialog_message.yml"
+      author: "Panyukov NN"
+      changes:
+        - createTable:
+            tableName: dialog_message
+            remarks: "Сообщение в рамках диалоговой сессии"
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pkey_dialog_message_id
+              - column:
+                  name: session_id
+                  type: uuid
+                  remarks: "Идентификатор сессии"
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fkey_dialog_message_session_id
+                    references: dialog_session(id)
+              - column:
+                  name: role
+                  type: varchar
+                  remarks: "Роль отправителя: USER, ASSISTANT, TOOL"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content
+                  type: text
+                  remarks: "Содержимое сообщения"
+              - column:
+                  name: create_time
+                  type: timestamp
+                  remarks: "Время создания"
+              - column:
+                  name: create_user
+                  type: varchar
+                  remarks: "Пользователь, который создал запись"
+              - column:
+                  name: last_update_time
+                  type: timestamp
+                  remarks: "Время последнего изменения"
+              - column:
+                  name: last_update_user
+                  type: varchar
+                  remarks: "Пользователь, который последним внес изменения"

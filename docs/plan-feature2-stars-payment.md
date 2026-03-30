@@ -26,23 +26,23 @@
 
 ### 2.1 Миграции БД
 
-- [ ] Добавить в миграцию `v1.1.0/changelog.yml` (вместе с Feature 1) или создать `v1.2.0`:
+- [ ] Добавить в миграцию `v1.1.0/changelog.yml` (вместе с Feature 1):
   - В таблицу `clients` добавить поля:
-    - `daily_retellings_used` SMALLINT DEFAULT 0
+    - `daily_retellings_used` INT DEFAULT 0
     - `daily_retellings_reset_date` DATE NULLABLE
 - [ ] Таблица `star_payments`:
   - `id` UUID PK
   - `client_id` UUID FK → `clients.id`
   - `telegram_charge_id` VARCHAR UNIQUE — ID транзакции от Telegram
   - `video_url` VARCHAR — за какое видео оплачено
-  - `created_at` TIMESTAMP
+  - аудит: `create_time`, `create_user`, `last_update_time`, `last_update_user` (как в `clients`)
 
 ---
 
 ### 2.2 JPA-модели и репозитории
 
 - [ ] Добавить поля `dailyRetellingsUsed` и `dailyRetellingsResetDate` в entity `Client`
-- [ ] Создать entity `StarPayment` (пакет `model`)
+- [ ] Создать entity `StarPayment extends AuditableEntity` (пакет `model`)
 - [ ] Создать `StarPaymentRepository` (пакет `repository`) с методом `existsByTelegramChargeId()`
 
 ---

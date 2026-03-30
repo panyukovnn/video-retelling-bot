@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: "01.create_dialog_session.yml"
+      author: "Panyukov NN"
+      changes:
+        - createTable:
+            tableName: dialog_session
+            remarks: "Сессия диалога пользователя с ботом"
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pkey_dialog_session_id
+              - column:
+                  name: client_id
+                  type: uuid
+                  remarks: "Идентификатор клиента"
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fkey_dialog_session_client_id
+                    references: clients(id)
+              - column:
+                  name: video_url
+                  type: varchar
+                  remarks: "URL видео для пересказа"
+              - column:
+                  name: status
+                  type: varchar
+                  remarks: "Статус сессии: ACTIVE, CLOSED"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: closed_at
+                  type: timestamp
+                  remarks: "Время закрытия сессии"
+              - column:
+                  name: create_time
+                  type: timestamp
+                  remarks: "Время создания"
+              - column:
+                  name: create_user
+                  type: varchar
+                  remarks: "Пользователь, который создал запись"
+              - column:
+                  name: last_update_time
+                  type: timestamp
+                  remarks: "Время последнего изменения"
+              - column:
+                  name: last_update_user
+                  type: varchar
+                  remarks: "Пользователь, который последним внес изменения"

@@ -14,27 +14,27 @@
 
 ### 1.1 Миграции БД
 
-- [ ] Создать миграцию `v1.1.0/changelog.yml`
-- [ ] Таблица `dialog_sessions`:
+- [x] Создать миграцию `v1.1.0/changelog.yml`
+- [x] Таблица `dialog_sessions`:
   - `id` UUID PK
   - `client_id` UUID FK → `clients.id`
   - `video_url` VARCHAR
   - `status` VARCHAR — значения: `ACTIVE`, `CLOSED`
-  - `created_at` TIMESTAMP
   - `closed_at` TIMESTAMP NULLABLE
-- [ ] Таблица `dialog_messages`:
+  - аудит: `create_time`, `create_user`, `last_update_time`, `last_update_user` (как в `clients`)
+- [x] Таблица `dialog_messages`:
   - `id` UUID PK
   - `session_id` UUID FK → `dialog_sessions.id`
   - `role` VARCHAR — значения: `USER`, `ASSISTANT`, `TOOL`
   - `content` TEXT
-  - `created_at` TIMESTAMP
+  - аудит: `create_time`, `create_user`, `last_update_time`, `last_update_user`
 
 ---
 
 ### 1.2 JPA-модели и репозитории
 
-- [ ] Создать entity `DialogSession` (пакет `model`)
-- [ ] Создать entity `DialogMessage` (пакет `model`)
+- [ ] Создать entity `DialogSession extends AuditableEntity` (пакет `model`)
+- [ ] Создать entity `DialogMessage extends AuditableEntity` (пакет `model`)
 - [ ] Создать `DialogSessionRepository` (пакет `repository`)
 - [ ] Создать `DialogMessageRepository` (пакет `repository`)
 
