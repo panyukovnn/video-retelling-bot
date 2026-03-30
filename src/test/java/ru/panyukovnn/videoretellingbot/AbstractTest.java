@@ -25,4 +25,6 @@ public abstract class AbstractTest {
     protected AiClient aiClient;
     @MockBean
     protected YtSubtitlesTool ytSubtitlesTool;
+    @MockBean
+    protected ru.panyukovnn.longpollingtgbotstarter.service.TgSender tgSender;
 }

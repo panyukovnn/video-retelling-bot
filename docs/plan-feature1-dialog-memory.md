@@ -116,6 +116,6 @@
 
 ### 1.9 Тесты
 
-- [ ] Unit-тест `DbChatMemoryRepositoryTest` — сохранение и чтение сообщений
-- [ ] Unit-тест `DialogDomainServiceTest` — открытие/закрытие сессий
-- [ ] Unit-тест `BotRetellingHandlerTest` — ветки: новая ссылка / вопрос с сессией / вопрос без сессии / превышение контекста
+- [x] Unit-тест `DbChatMemoryRepositoryTest` — сохранение и чтение сообщений
+- [x] Unit-тест `DialogDomainServiceTest` — открытие/закрытие сессий
+- [x] Unit-тест `BotRetellingHandlerTest` — ветки: новая ссылка / вопрос с сессией / вопрос без сессии / превышение контекста
