@@ -29,7 +29,7 @@ public class BotRetellingHandler {
 
         String subtitles = ytSubtitlesTool.loadSubtitles(inputMessage);
 
-        tgSender.send(chatId, "Формирую статью (это может занимать до 2х минут)");
+        tgSender.send(chatId, "Формирую пересказ (это может занимать до 2х минут)");
 
         String retellingResponse = aiClient.promptingCall("retelling_from_bot", promptProperties.getYoutubeRetelling(), subtitles);
 
