@@ -33,10 +33,10 @@
 
 ### 1.2 JPA-модели и репозитории
 
-- [ ] Создать entity `DialogSession extends AuditableEntity` (пакет `model`)
-- [ ] Создать entity `DialogMessage extends AuditableEntity` (пакет `model`)
-- [ ] Создать `DialogSessionRepository` (пакет `repository`)
-- [ ] Создать `DialogMessageRepository` (пакет `repository`)
+- [x] Создать entity `DialogSession extends AuditableEntity` (пакет `model`)
+- [x] Создать entity `DialogMessage extends AuditableEntity` (пакет `model`)
+- [x] Создать `DialogSessionRepository` (пакет `repository`)
+- [x] Создать `DialogMessageRepository` (пакет `repository`)
 
 ---
 
