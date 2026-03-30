@@ -42,12 +42,12 @@
 
 ### 1.3 Хранилище памяти Spring AI
 
-- [ ] Реализовать `DbChatMemoryRepository implements ChatMemoryRepository` (пакет `service`) :
+- [x] Реализовать `DbChatMemoryRepository implements ChatMemoryRepository` (пакет `service`) :
   - `add(conversationId, messages)` → сохраняет список `Message` в `dialog_messages`
   - `getMessages(conversationId, lastN)` → читает последние N сообщений сессии
   - `clear(conversationId)` → закрывает сессию (status = CLOSED)
-- [ ] В `ChatClientConfig` зарегистрировать `MessageWindowChatMemory` с `DbChatMemoryRepository`
-- [ ] Добавить `MessageChatMemoryAdvisor` в `ChatClient` bean
+- [x] В `ChatClientConfig` зарегистрировать `MessageWindowChatMemory` с `DbChatMemoryRepository`
+- [x] Добавить `MessageChatMemoryAdvisor` в `ChatClient` bean
 
 ---
 

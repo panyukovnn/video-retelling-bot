@@ -4,10 +4,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import ru.panyukovnn.videoretellingbot.model.DialogSession;
 import ru.panyukovnn.videoretellingbot.model.DialogSessionStatus;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface DialogSessionRepository extends JpaRepository<DialogSession, UUID> {
 
     Optional<DialogSession> findByClientIdAndStatus(UUID clientId, DialogSessionStatus status);
+
+    List<DialogSession> findByStatus(DialogSessionStatus status);
 }

@@ -1,6 +1,5 @@
 package ru.panyukovnn.videoretellingbot.repository;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.panyukovnn.videoretellingbot.model.DialogMessage;
 
@@ -9,5 +8,7 @@ import java.util.UUID;
 
 public interface DialogMessageRepository extends JpaRepository<DialogMessage, UUID> {
 
-    List<DialogMessage> findBySessionIdOrderByCreateTimeAsc(UUID sessionId, Pageable pageable);
+    List<DialogMessage> findBySessionIdOrderByCreateTimeAsc(UUID sessionId);
+
+    void deleteBySessionId(UUID sessionId);
 }
