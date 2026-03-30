@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import ru.panyukovnn.longpollingtgbotstarter.service.TgSender;
 import ru.panyukovnn.videoretellingbot.dto.UpdateParams;
 import ru.panyukovnn.videoretellingbot.exception.RetellingException;
+import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.serivce.BotRetellingHandler;
 import ru.panyukovnn.videoretellingbot.serivce.domain.ClientDomainService;
 
@@ -61,9 +62,9 @@ public class TgBotListener {
                     return CompletableFuture.completedFuture(null);
                 }
 
-                clientDomainService.save(updateParams);
+                Client client = clientDomainService.save(updateParams);
 
-                botRetellingHandler.handleRetelling(updateParams.getChatId(), updateParams.getInput());
+                botRetellingHandler.handleRetelling(updateParams.getChatId(), client, updateParams.getInput());
             } catch (RetellingException e) {
                 log.error("Ошибка бизнес логики. id: {}. Сообщение: {}", e.getId(), e.getMessage(), e);
 

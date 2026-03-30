@@ -12,7 +12,7 @@ public class ClientDomainService {
 
     private final ClientRepository clientRepository;
 
-    public void save(UpdateParams updateParams) {
+    public Client save(UpdateParams updateParams) {
         Client client = clientRepository.findByTgUserId(updateParams.getUserId())
             .orElseGet(() -> Client.builder()
                 .tgUserId(updateParams.getUserId())
@@ -25,7 +25,7 @@ public class ClientDomainService {
 
         client.setRetellingsCount(client.getRetellingsCount() + 1L);
 
-        clientRepository.save(client);
+        return clientRepository.save(client);
     }
 
 }

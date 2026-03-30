@@ -66,20 +66,20 @@
 
 ### 1.5 Переработка AiClient
 
-- [ ] Метод `startRetelling(String conversationId, String videoUrl)`:
+- [x] Метод `startRetelling(String conversationId, String videoUrl)`:
   - Передаёт URL как user-сообщение в `chatClient` с `conversationId`
   - LLM сам вызывает tool, получает субтитры, формирует пересказ
   - Возвращает текст пересказа
-- [ ] Метод `continueDialog(String conversationId, String userMessage)`:
+- [x] Метод `continueDialog(String conversationId, String userMessage)`:
   - Передаёт вопрос пользователя в `chatClient` с `conversationId`
   - Возвращает ответ LLM
-- [ ] Оба метода пробрасывают исключение контекста наверх (не глотают)
+- [x] Оба метода пробрасывают исключение контекста наверх (не глотают)
 
 ---
 
 ### 1.6 Сервис управления сессиями
 
-- [ ] Создать `DialogDomainService` (пакет `service/domain`):
+- [x] Создать `DialogDomainService` (пакет `service/domain`):
   - `openSession(clientId, videoUrl)` → закрывает активную сессию (если есть), создаёт новую, возвращает `sessionId`
   - `findActiveSession(clientId)` → возвращает `Optional<DialogSession>`
   - `closeSession(sessionId)` → устанавливает `status = CLOSED`, `closed_at = now()`
@@ -88,16 +88,16 @@
 
 ### 1.7 Переработка BotRetellingHandler
 
-- [ ] При получении YouTube-ссылки:
+- [x] При получении YouTube-ссылки:
   1. Вызвать `DialogDomainService.openSession()` — получить `sessionId`
   2. Отправить сообщение «Извлекаю содержание...»
   3. Вызвать `AiClient.startRetelling(sessionId, url)`
   4. Отправить пересказ
   5. Отправить сообщение «Можете задавать вопросы по содержанию видео»
-- [ ] При получении обычного сообщения (не ссылки):
+- [x] При получении обычного сообщения (не ссылки):
   - Если активная сессия есть → `AiClient.continueDialog(sessionId, message)`
   - Если нет → «Пришлите ссылку на YouTube-видео»
-- [ ] При поимке исключения превышения контекста от Spring AI:
+- [x] При поимке исключения превышения контекста от Spring AI:
   - `DialogDomainService.closeSession(sessionId)`
   - Отправить сообщение: «Объём диалога превысил 200 000 токенов — разговор завершён. Пришлите новую ссылку для продолжения»
 
