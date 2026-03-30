@@ -36,6 +36,7 @@ retelling:
   prompt:
     youtube-retelling: ${YOUTUBE_RETELLING_PROMPT}
   rest-timeout: 180000
+  dialog-context-limit-tokens: 200000
 
 telegram:
   bot:

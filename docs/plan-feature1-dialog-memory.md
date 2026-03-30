@@ -105,12 +105,12 @@
 
 ### 1.8 Конфигурация
 
-- [ ] Добавить в `application.yml` под `retelling`:
+- [x] Добавить в `application.yml` под `retelling`:
   ```yaml
   retelling:
     dialog-context-limit-tokens: 200000
   ```
-- [ ] Добавить поле в `RetellingProperties` (или создать отдельный `@ConfigurationProperties`)
+- [x] Добавить поле в `RetellingProperties` (или создать отдельный `@ConfigurationProperties`)
 
 ---
 
