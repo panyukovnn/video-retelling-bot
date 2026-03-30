@@ -16,7 +16,9 @@ public class AiClient {
     public String promptingCall(String requestType, String prompt, String contentToRetell) {
         log.info("Отправляю запрос в AI для: {}", requestType);
 
-        String content = chatClient.prompt(new Prompt(prompt + "\n\n" + contentToRetell))
+        String content = chatClient.prompt()
+            .system(prompt)
+            .user(contentToRetell)
             .call()
             .content();
 

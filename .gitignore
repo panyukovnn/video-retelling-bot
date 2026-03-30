@@ -44,3 +44,4 @@ bin/
 /src/main/resources/application-localdev.yaml
 /credentials.txt
 /deploy/application-prom.yaml
+/update-manifesto.sh

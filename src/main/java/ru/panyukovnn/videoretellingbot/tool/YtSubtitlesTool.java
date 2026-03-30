@@ -19,8 +19,6 @@ public class YtSubtitlesTool {
 
     @Tool(description = "Load subtitles of Youtube video by link")
     String getYoutubeVideoSubtitles(String youtubeVideoUrl) {
-
-
         return loadSubtitles(youtubeVideoUrl);
     }
 
