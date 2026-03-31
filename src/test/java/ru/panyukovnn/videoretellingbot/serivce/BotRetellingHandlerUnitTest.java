@@ -41,6 +41,48 @@ class BotRetellingHandlerUnitTest {
     class HandleRetelling {
 
         @Test
+        void when_handleNewVideo_then_processingMessageSent() {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenReturn("Subtitles text");
+            when(aiClient.startRetelling(sessionId.toString(), videoUrl, "Subtitles text", null))
+                .thenReturn("Retelling text");
+
+            handler.handleRetelling(chatId, client, videoUrl);
+
+            verify(tgSender).send(chatId, Constants.PROCESSING_MESSAGE);
+        }
+
+        @Test
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        void when_handleNewVideo_then_typingActionSent() {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            ScheduledFuture typingTask = mock(ScheduledFuture.class);
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenReturn("Subtitles text");
+            when(aiClient.startRetelling(sessionId.toString(), videoUrl, "Subtitles text", null))
+                .thenReturn("Retelling text");
+            when(typingIndicator.start(chatId)).thenReturn(typingTask);
+
+            handler.handleRetelling(chatId, client, videoUrl);
+
+            verify(typingIndicator).start(chatId);
+            verify(typingIndicator).stop(typingTask);
+        }
+
+        @Test
         void when_handleRetelling_withYoutubeUrlAndFreeAccess_then_opensSessionAndSendsRetelling() {
             Long chatId = 100L;
             UUID clientId = UUID.randomUUID();
@@ -56,7 +98,7 @@ class BotRetellingHandlerUnitTest {
 
             handler.handleRetelling(chatId, client, videoUrl);
 
-            verify(tgSender).send(chatId, "Извлекаю содержание...");
+            verify(tgSender).send(chatId, Constants.PROCESSING_MESSAGE);
             verify(tgSender).send(chatId, "Retelling text");
             verify(tgSender).send(chatId, "Можете задавать вопросы по содержанию видео");
             verify(accessChecker).incrementDailyUsage(client);
