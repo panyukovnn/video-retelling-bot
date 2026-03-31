@@ -35,8 +35,6 @@ retelling:
   admin:
     user-ids: [ 368837634 ]
   yt-subtitles-loader-jar-path: "/Users/nikolay/dev/shell-services/yt-subtitles-loader-1.0.0-RC2.jar"
-  prompt:
-    youtube-retelling: ${YOUTUBE_RETELLING_PROMPT}
   rest-timeout: 180000
   dialog-context-limit-tokens: 200000
 
