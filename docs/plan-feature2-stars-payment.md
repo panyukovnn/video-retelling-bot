@@ -80,10 +80,9 @@
 
 ### 2.5 Сервис платежей
 
-- [ ] Создать `StarPaymentDomainService` (пакет `service/domain`):
-  - `sendInvoice(long chatId, String videoUrl)` — вызывает `TgSender.sendInvoice()` с `currency="XTR"`, 1 звезда, `payload = videoUrl`
-  - `confirmPayment(long userId, String chargeId, String videoUrl)` — сохраняет `StarPayment`, помечает что пересказ оплачен
-  - `hasPendingPayment(long userId, String videoUrl)` — проверяет, есть ли неиспользованная оплата для данного URL
+- [x] Создать `StarPaymentDomainService` (пакет `service/domain`):
+  - `sendInvoice(long chatId, String videoUrl)` — вызывает `TgBotApi.execute(SendInvoice)` с `currency="XTR"`, 1 звезда, `payload = videoUrl`
+  - `confirmPayment(Client client, String chargeId, String videoUrl)` — сохраняет `StarPayment`
 
 ---
 

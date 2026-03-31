@@ -16,35 +16,38 @@ databaseChangeLog:
                   name: client_id
                   type: uuid
                   remarks: "Идентификатор клиента"
-                  constraints:
-                    nullable: false
-                    foreignKeyName: fkey_star_payment_client_id
-                    references: clients(id)
               - column:
                   name: telegram_charge_id
                   type: varchar
                   remarks: "Уникальный идентификатор транзакции от Telegram"
-                  constraints:
-                    nullable: false
-                    unique: true
-                    uniqueConstraintName: key_star_payment_telegram_charge_id
               - column:
                   name: video_url
                   type: varchar
                   remarks: "URL видео, за пересказ которого произведена оплата"
+
               - column:
                   name: create_time
                   type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+                  constraints:
+                    nullable: false
                   remarks: "Время создания"
               - column:
                   name: create_user
                   type: varchar
-                  remarks: "Пользователь, который создал запись"
+                  constraints:
+                    nullable: false
+                  remarks: "Пользователь, создавший запись"
               - column:
                   name: last_update_time
                   type: timestamp
-                  remarks: "Время последнего изменения"
+                  defaultValueComputed: CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+                  constraints:
+                    nullable: false
+                  remarks: "Время обновления"
               - column:
                   name: last_update_user
                   type: varchar
-                  remarks: "Пользователь, который последним внес изменения"
+                  constraints:
+                    nullable: false
+                  remarks: "Пользователь, изменивший запись"

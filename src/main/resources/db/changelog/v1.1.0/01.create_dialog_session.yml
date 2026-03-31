@@ -12,15 +12,10 @@ databaseChangeLog:
                   type: uuid
                   constraints:
                     primaryKey: true
-                    primaryKeyName: pkey_dialog_session_id
               - column:
                   name: client_id
                   type: uuid
                   remarks: "Идентификатор клиента"
-                  constraints:
-                    nullable: false
-                    foreignKeyName: fkey_dialog_session_client_id
-                    references: clients(id)
               - column:
                   name: video_url
                   type: varchar
@@ -28,9 +23,7 @@ databaseChangeLog:
               - column:
                   name: status
                   type: varchar
-                  remarks: "Статус сессии: ACTIVE, CLOSED"
-                  constraints:
-                    nullable: false
+                  remarks: "Статус сессии"
               - column:
                   name: closed_at
                   type: timestamp

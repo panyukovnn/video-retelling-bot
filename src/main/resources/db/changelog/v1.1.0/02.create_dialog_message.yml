@@ -14,7 +14,7 @@ databaseChangeLog:
                     primaryKey: true
               - column:
                   name: session_id
-                  type: varchar
+                  type: uuid
                   remarks: "Идентификатор сессии"
               - column:
                   name: role
