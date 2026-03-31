@@ -8,8 +8,9 @@ import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.property.AdminProperties;
 import ru.panyukovnn.videoretellingbot.repository.ClientRepository;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,7 +52,7 @@ class AccessCheckerUnitTest {
                 .id(UUID.randomUUID())
                 .tgUserId(100L)
                 .dailyRetellingsUsed(0)
-                .dailyRetellingsResetDate(LocalDateTime.now())
+                .dailyRetellingsResetDate(Instant.now())
                 .build();
 
             AccessChecker.AccessResult result = accessChecker.checkAccess(client);
@@ -65,7 +66,7 @@ class AccessCheckerUnitTest {
                 .id(UUID.randomUUID())
                 .tgUserId(100L)
                 .dailyRetellingsUsed(1)
-                .dailyRetellingsResetDate(LocalDateTime.now())
+                .dailyRetellingsResetDate(Instant.now())
                 .build();
 
             AccessChecker.AccessResult result = accessChecker.checkAccess(client);
@@ -79,14 +80,18 @@ class AccessCheckerUnitTest {
                 .id(UUID.randomUUID())
                 .tgUserId(100L)
                 .dailyRetellingsUsed(3)
-                .dailyRetellingsResetDate(LocalDateTime.now().minusDays(1))
+                .dailyRetellingsResetDate(Instant.now().minusSeconds(86400))
                 .build();
 
             AccessChecker.AccessResult result = accessChecker.checkAccess(client);
 
             assertEquals(AccessChecker.AccessResult.ALLOWED_FREE, result);
             assertEquals(0, client.getDailyRetellingsUsed());
-            assertEquals(LocalDate.now(), client.getDailyRetellingsResetDate().toLocalDate());
+            assertNotNull(client.getDailyRetellingsResetDate());
+            assertEquals(
+                LocalDate.now(ZoneOffset.UTC),
+                client.getDailyRetellingsResetDate().atZone(ZoneOffset.UTC).toLocalDate()
+            );
             verify(clientRepository).save(client);
         }
 
@@ -120,7 +125,10 @@ class AccessCheckerUnitTest {
 
             assertEquals(1, client.getDailyRetellingsUsed());
             assertNotNull(client.getDailyRetellingsResetDate());
-            assertEquals(LocalDate.now(), client.getDailyRetellingsResetDate().toLocalDate());
+            assertEquals(
+                LocalDate.now(ZoneOffset.UTC),
+                client.getDailyRetellingsResetDate().atZone(ZoneOffset.UTC).toLocalDate()
+            );
             verify(clientRepository).save(client);
         }
     }

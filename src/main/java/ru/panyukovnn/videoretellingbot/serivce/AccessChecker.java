@@ -6,12 +6,15 @@ import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.property.AdminProperties;
 import ru.panyukovnn.videoretellingbot.repository.ClientRepository;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
 public class AccessChecker {
+
+    private static final ZoneId MOSCOW_ZONE = ZoneId.of("Europe/Moscow");
 
     private final AdminProperties adminProperties;
     private final ClientRepository clientRepository;
@@ -36,17 +39,17 @@ public class AccessChecker {
     public void incrementDailyUsage(Client client) {
         int currentUsed = client.getDailyRetellingsUsed() == null ? 0 : client.getDailyRetellingsUsed();
         client.setDailyRetellingsUsed(currentUsed + 1);
-        client.setDailyRetellingsResetDate(LocalDateTime.now());
+        client.setDailyRetellingsResetDate(Instant.now());
         clientRepository.save(client);
     }
 
     private void resetDailyCounterIfNeeded(Client client) {
-        LocalDate today = LocalDate.now();
-        LocalDateTime resetDate = client.getDailyRetellingsResetDate();
+        LocalDate today = LocalDate.now(MOSCOW_ZONE);
+        Instant resetDate = client.getDailyRetellingsResetDate();
 
-        if (resetDate == null || !today.equals(resetDate.toLocalDate())) {
+        if (resetDate == null || !today.equals(resetDate.atZone(MOSCOW_ZONE).toLocalDate())) {
             client.setDailyRetellingsUsed(0);
-            client.setDailyRetellingsResetDate(LocalDateTime.now());
+            client.setDailyRetellingsResetDate(Instant.now());
             clientRepository.save(client);
         }
     }

@@ -7,11 +7,42 @@ import ru.panyukovnn.videoretellingbot.exception.RetellingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Optional;
+import java.util.regex.Matcher;
 
+import static ru.panyukovnn.videoretellingbot.util.Constants.YOUTUBE_URL_PATTERN;
 import static ru.panyukovnn.videoretellingbot.util.Constants.YOUTUBE_VIDEO_ID_PATTERN;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class YoutubeLinkHelper {
+
+    /**
+     * Ищет YouTube-ссылку внутри произвольного текста.
+     * Возвращает найденный URL или пустой Optional.
+     */
+    public static Optional<String> findYoutubeUrl(String text) {
+        Matcher matcher = YOUTUBE_URL_PATTERN.matcher(text);
+
+        if (matcher.find()) {
+            return Optional.of(matcher.group());
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Извлекает пользовательский запрос из текста, удаляя YouTube-ссылку.
+     * Возвращает пустой Optional если после удаления ссылки текст пуст.
+     */
+    public static Optional<String> extractUserInstruction(String text, String youtubeUrl) {
+        String instruction = text.replace(youtubeUrl, "").strip();
+
+        if (instruction.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(instruction);
+    }
 
     public static String removeRedundantQueryParamsFromYoutubeLint(String youtubeLink) {
         try {

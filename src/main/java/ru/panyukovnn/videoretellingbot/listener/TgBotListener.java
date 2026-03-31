@@ -12,8 +12,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.payments.PreCheckoutQuery;
 import org.telegram.telegrambots.meta.api.objects.payments.SuccessfulPayment;
-import ru.panyukovnn.longpollingtgbotstarter.config.TgBotApi;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.panyukovnn.longpollingtgbotstarter.service.TgSender;
+import ru.panyukovnn.videoretellingbot.command.StartCommand;
+import ru.panyukovnn.videoretellingbot.command.StatusCommand;
 import ru.panyukovnn.videoretellingbot.dto.UpdateParams;
 import ru.panyukovnn.videoretellingbot.exception.RetellingException;
 import ru.panyukovnn.videoretellingbot.model.Client;
@@ -32,8 +34,10 @@ public class TgBotListener {
 
     private static final String MSG_PAYMENT_SUCCESS = "Оплата прошла успешно, начинаю пересказ!";
 
-    private final TgBotApi tgBotApi;
+    private final TelegramClient telegramClient;
     private final TgSender tgSender;
+    private final StartCommand startCommand;
+    private final StatusCommand statusCommand;
     private final ClientDomainService clientDomainService;
     private final BotRetellingHandler botRetellingHandler;
     private final StarPaymentDomainService starPaymentDomainService;
@@ -83,6 +87,18 @@ public class TgBotListener {
                     return CompletableFuture.completedFuture(null);
                 }
 
+                if (StartCommand.COMMAND.equals(updateParams.getInput())) {
+                    startCommand.execute(updateParams.getChatId());
+
+                    return CompletableFuture.completedFuture(null);
+                }
+
+                if (StatusCommand.COMMAND.equals(updateParams.getInput())) {
+                    statusCommand.execute(updateParams.getChatId(), updateParams.getUserId());
+
+                    return CompletableFuture.completedFuture(null);
+                }
+
                 Client client = clientDomainService.save(updateParams);
 
                 botRetellingHandler.handleRetelling(updateParams.getChatId(), client, updateParams.getInput());
@@ -107,7 +123,7 @@ public class TgBotListener {
             preCheckoutQuery.getId(), preCheckoutQuery.getFrom().getId());
 
         try {
-            tgBotApi.execute(AnswerPreCheckoutQuery.builder()
+            telegramClient.execute(AnswerPreCheckoutQuery.builder()
                 .preCheckoutQueryId(preCheckoutQuery.getId())
                 .ok(true)
                 .build());
@@ -160,7 +176,7 @@ public class TgBotListener {
             return Optional.of(new UpdateParams(
                 user.getId(),
                 update.getCallbackQuery().getMessage().getChatId(),
-                update.getCallbackQuery().getMessage().getMessageThreadId(),
+                update.getCallbackQuery().getMessage().getMessageId(),
                 user.getUserName(),
                 user.getFirstName(),
                 user.getLastName(),

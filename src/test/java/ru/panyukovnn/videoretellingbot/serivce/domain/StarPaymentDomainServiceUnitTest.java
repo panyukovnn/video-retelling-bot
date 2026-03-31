@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.telegrambots.meta.api.methods.invoices.SendInvoice;
-import ru.panyukovnn.longpollingtgbotstarter.config.TgBotApi;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.StarPayment;
 import ru.panyukovnn.videoretellingbot.repository.StarPaymentRepository;
@@ -21,10 +21,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class StarPaymentDomainServiceUnitTest {
 
-    private final TgBotApi tgBotApi = mock(TgBotApi.class);
+    private final TelegramClient telegramClient = mock(TelegramClient.class);
     private final StarPaymentRepository starPaymentRepository = mock(StarPaymentRepository.class);
 
-    private final StarPaymentDomainService service = new StarPaymentDomainService(tgBotApi, starPaymentRepository);
+    private final StarPaymentDomainService service = new StarPaymentDomainService(telegramClient, starPaymentRepository);
 
     @Nested
     class SendInvoiceTest {
@@ -37,7 +37,7 @@ class StarPaymentDomainServiceUnitTest {
             service.sendInvoice(chatId, videoUrl);
 
             ArgumentCaptor<SendInvoice> captor = ArgumentCaptor.forClass(SendInvoice.class);
-            verify(tgBotApi).execute(captor.capture());
+            verify(telegramClient).execute(captor.capture());
 
             SendInvoice invoice = captor.getValue();
             assertEquals(String.valueOf(chatId), invoice.getChatId());
@@ -50,7 +50,7 @@ class StarPaymentDomainServiceUnitTest {
 
         @Test
         void when_sendInvoice_andExecuteFails_then_throwsException() throws Exception {
-            when(tgBotApi.execute(any(SendInvoice.class))).thenThrow(new RuntimeException("API error"));
+            when(telegramClient.execute(any(SendInvoice.class))).thenThrow(new RuntimeException("API error"));
 
             assertThrows(RuntimeException.class, () -> service.sendInvoice(100L, "https://youtube.com/watch?v=abc"));
         }
@@ -72,7 +72,7 @@ class StarPaymentDomainServiceUnitTest {
             verify(starPaymentRepository).save(captor.capture());
 
             StarPayment saved = captor.getValue();
-            assertEquals(client, saved.getClient());
+            assertEquals(clientId, saved.getClientId());
             assertEquals(chargeId, saved.getTelegramChargeId());
             assertEquals(videoUrl, saved.getVideoUrl());
         }

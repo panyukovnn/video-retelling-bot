@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.panyukovnn.longpollingtgbotstarter.config.TgBotApi;
 import ru.panyukovnn.longpollingtgbotstarter.service.TgSender;
 import ru.panyukovnn.videoretellingbot.client.AiClient;
@@ -21,7 +23,11 @@ public abstract class AbstractTest {
     protected ClientRepository clientRepository;
 
     @MockBean
+    protected TelegramBotsLongPollingApplication telegramBotsLongPollingApplication;
+    @MockBean
     protected TgBotApi tgBotApi;
+    @MockBean
+    protected TelegramClient telegramClient;
     @MockBean
     protected AiClient aiClient;
     @MockBean

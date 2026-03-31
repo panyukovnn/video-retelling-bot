@@ -18,18 +18,23 @@ public class DialogMessage extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "session_id", nullable = false)
-    private DialogSession session;
-
+    /**
+     * Идентификатор сессии диалога
+     */
+    private UUID sessionId;
+    /**
+     * Роль отправителя сообщения
+     */
     @Enumerated(EnumType.STRING)
     private MessageRole role;
-
+    /**
+     * Содержимое сообщения
+     */
     private String content;
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DialogMessage that = (DialogMessage) o;
 

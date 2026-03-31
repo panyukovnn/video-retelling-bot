@@ -2,10 +2,10 @@ package ru.panyukovnn.videoretellingbot.listener;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.api.objects.chat.Chat;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
 import ru.panyukovnn.videoretellingbot.AbstractTest;
 import ru.panyukovnn.videoretellingbot.model.Client;
 
@@ -26,7 +26,8 @@ class TgBotListenerTest extends AbstractTest {
     void when_onUpdate_then_success() throws ExecutionException, InterruptedException {
         Update update = createUpdate();
 
-        when(aiClient.startRetelling(any(), any()))
+        when(ytSubtitlesTool.loadSubtitles(any())).thenReturn("subtitles text");
+        when(aiClient.startRetelling(any(), any(), any(), any()))
             .thenReturn("test retelling");
 
         tgBotListener.onUpdate(update).get();
@@ -49,14 +50,18 @@ class TgBotListenerTest extends AbstractTest {
     }
 
     private static Update createUpdate() {
-        User user = new User();
-        user.setId(123L);
-        user.setUserName("username");
-        user.setFirstName("firstName");
-        user.setLastName("lastName");
+        User user = User.builder()
+            .id(123L)
+            .firstName("firstName")
+            .lastName("lastName")
+            .userName("username")
+            .isBot(false)
+            .build();
 
-        Chat chat = new Chat();
-        chat.setId(123L);
+        Chat chat = Chat.builder()
+            .id(123L)
+            .type("private")
+            .build();
 
         Message message = new Message();
         message.setFrom(user);
@@ -66,6 +71,7 @@ class TgBotListenerTest extends AbstractTest {
 
         Update update = new Update();
         update.setMessage(message);
+
         return update;
     }
 }

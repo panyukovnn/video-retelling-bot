@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.invoices.SendInvoice;
 import org.telegram.telegrambots.meta.api.objects.payments.LabeledPrice;
-import ru.panyukovnn.longpollingtgbotstarter.config.TgBotApi;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.StarPayment;
 import ru.panyukovnn.videoretellingbot.repository.StarPaymentRepository;
@@ -22,7 +22,7 @@ public class StarPaymentDomainService {
     private static final String CURRENCY_XTR = "XTR";
     private static final int STAR_PRICE = 1;
 
-    private final TgBotApi tgBotApi;
+    private final TelegramClient telegramClient;
     private final StarPaymentRepository starPaymentRepository;
 
     /**
@@ -35,13 +35,12 @@ public class StarPaymentDomainService {
             .description(INVOICE_DESCRIPTION)
             .payload(videoUrl)
             .providerToken("")
-            .startParameter("")
             .currency(CURRENCY_XTR)
             .price(new LabeledPrice(INVOICE_TITLE, STAR_PRICE))
             .build();
 
         try {
-            tgBotApi.execute(sendInvoice);
+            telegramClient.execute(sendInvoice);
             log.info("Инвойс на оплату пересказа отправлен в чат {}", chatId);
         } catch (Exception e) {
             log.error("Ошибка при отправке инвойса в чат {}", chatId, e);
@@ -55,7 +54,7 @@ public class StarPaymentDomainService {
      */
     public void confirmPayment(Client client, String chargeId, String videoUrl) {
         StarPayment payment = StarPayment.builder()
-            .client(client)
+            .clientId(client.getId())
             .telegramChargeId(chargeId)
             .videoUrl(videoUrl)
             .build();
