@@ -4,6 +4,7 @@ import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.panyukovnn.longpollingtgbotstarter.service.StreamingMessageUpdater;
 import ru.panyukovnn.longpollingtgbotstarter.service.TgSender;
 import ru.panyukovnn.videoretellingbot.client.AiClient;
 import ru.panyukovnn.videoretellingbot.model.Client;
@@ -76,13 +77,9 @@ public class BotRetellingHandler {
         UUID sessionId = dialogDomainService.openSession(client, videoUrl);
         tgSender.send(chatId, Constants.PROCESSING_MESSAGE);
 
-        ScheduledFuture<?> typingTask = typingIndicator.start(chatId);
-
         try {
-            String subtitles = ytSubtitlesTool.loadSubtitles(videoUrl);
-            String retelling = aiClient.startRetelling(sessionId.toString(), videoUrl, subtitles, userInstruction);
-
-            tgSender.send(chatId, retelling);
+            String subtitles = loadSubtitlesWithTyping(chatId, videoUrl);
+            streamRetellingToChat(chatId, sessionId.toString(), videoUrl, subtitles, userInstruction);
             tgSender.send(chatId, MSG_QUESTIONS_WELCOME);
 
             if (AccessChecker.AccessResult.ALLOWED_FREE == accessResult) {
@@ -92,8 +89,38 @@ public class BotRetellingHandler {
             dialogDomainService.closeSession(sessionId);
 
             throw e;
+        }
+    }
+
+    private String loadSubtitlesWithTyping(Long chatId, String videoUrl) {
+        ScheduledFuture<?> typingTask = typingIndicator.start(chatId);
+
+        try {
+            return ytSubtitlesTool.loadSubtitles(videoUrl);
         } finally {
             typingIndicator.stop(typingTask);
+        }
+    }
+
+    private void streamRetellingToChat(
+            Long chatId,
+            String sessionId,
+            String videoUrl,
+            String subtitles,
+            @Nullable String userInstruction) {
+        StreamingMessageUpdater updater = startStreamingMessage(chatId);
+
+        aiClient.startRetellingStream(sessionId, videoUrl, subtitles, userInstruction)
+            .doOnNext(updater::appendToken)
+            .doOnTerminate(updater::complete)
+            .blockLast();
+    }
+
+    private StreamingMessageUpdater startStreamingMessage(Long chatId) {
+        try {
+            return tgSender.sendStreaming(chatId);
+        } catch (Exception e) {
+            throw new RuntimeException("Не удалось начать стриминг сообщения. chatId: " + chatId, e);
         }
     }
 
@@ -107,19 +134,19 @@ public class BotRetellingHandler {
         }
 
         UUID sessionId = activeSession.get().getId();
-        ScheduledFuture<?> typingTask = typingIndicator.start(chatId);
 
         try {
-            String answer = aiClient.continueDialog(sessionId.toString(), userMessage);
+            StreamingMessageUpdater updater = startStreamingMessage(chatId);
 
-            tgSender.send(chatId, answer);
+            aiClient.continueDialogStream(sessionId.toString(), userMessage)
+                .doOnNext(updater::appendToken)
+                .doOnTerminate(updater::complete)
+                .blockLast();
         } catch (Exception contextException) {
             log.warn("Превышен лимит контекста диалога. sessionId: {}", sessionId, contextException);
 
             dialogDomainService.closeSession(sessionId);
             tgSender.send(chatId, MSG_CONTEXT_EXCEEDED);
-        } finally {
-            typingIndicator.stop(typingTask);
         }
     }
 }

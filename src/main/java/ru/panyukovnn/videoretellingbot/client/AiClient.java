@@ -7,6 +7,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 @Slf4j
 @Service
@@ -35,11 +36,15 @@ public class AiClient {
     private final MessageWindowChatMemory messageWindowChatMemory;
 
     /**
-     * Начинает диалог с пересказом видео.
+     * Начинает диалог с пересказом видео, возвращая стрим токенов ответа.
      * Субтитры передаются напрямую в сообщение пользователя, чтобы они всегда были доступны в истории диалога.
      * Если передан userInstruction — добавляется к субтитрам как уточняющий запрос.
      */
-    public String startRetelling(String conversationId, String videoUrl, String subtitles, @Nullable String userInstruction) {
+    public Flux<String> startRetellingStream(
+            String conversationId,
+            String videoUrl,
+            String subtitles,
+            @Nullable String userInstruction) {
         log.info("Начинаю пересказ видео. conversationId: {}", conversationId);
 
         String subtitlesContext = "Субтитры видео (" + videoUrl + "):\n" + subtitles;
@@ -47,7 +52,7 @@ public class AiClient {
             ? subtitlesContext
             : subtitlesContext + "\n\n" + userInstruction;
 
-        String content = chatClient.prompt()
+        return chatClient.prompt()
             .system(YOUTUBE_RETELLING_PROMPT)
             .user(userMessage)
             .advisors(
@@ -55,32 +60,24 @@ public class AiClient {
                     .conversationId(conversationId)
                     .build()
             )
-            .call()
+            .stream()
             .content();
-
-        log.info("Пересказ сформирован. conversationId: {}", conversationId);
-
-        return content;
     }
 
     /**
-     * Продолжает существующий диалог, отвечая на вопрос пользователя.
+     * Продолжает существующий диалог, возвращая стрим токенов ответа.
      */
-    public String continueDialog(String conversationId, String userMessage) {
+    public Flux<String> continueDialogStream(String conversationId, String userMessage) {
         log.info("Продолжаю диалог. conversationId: {}", conversationId);
 
-        String content = chatClient.prompt()
+        return chatClient.prompt()
             .user(userMessage)
             .advisors(
                 MessageChatMemoryAdvisor.builder(messageWindowChatMemory)
                     .conversationId(conversationId)
                     .build()
             )
-            .call()
+            .stream()
             .content();
-
-        log.info("Ответ на вопрос сформирован. conversationId: {}", conversationId);
-
-        return content;
     }
 }

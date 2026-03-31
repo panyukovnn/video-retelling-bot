@@ -13,22 +13,27 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import reactor.core.publisher.Flux;
+import ru.panyukovnn.longpollingtgbotstarter.service.StreamingMessageUpdater;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class TgBotListenerTest extends AbstractTest {
 
     @Test
     @Transactional
-    void when_onUpdate_then_success() throws ExecutionException, InterruptedException {
+    void when_onUpdate_then_success() throws Exception {
         Update update = createUpdate();
 
         when(ytSubtitlesTool.loadSubtitles(any())).thenReturn("subtitles text");
-        when(aiClient.startRetelling(any(), any(), any(), any()))
-            .thenReturn("test retelling");
+        when(tgSender.sendStreaming(any())).thenReturn(mock(StreamingMessageUpdater.class));
+        when(aiClient.startRetellingStream(any(), any(), any(), any()))
+            .thenReturn(Flux.just("test retelling"));
 
         tgBotListener.onUpdate(update).get();
 
