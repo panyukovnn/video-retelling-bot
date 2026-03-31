@@ -11,6 +11,7 @@ import ru.panyukovnn.videoretellingbot.model.DialogSession;
 import ru.panyukovnn.videoretellingbot.serivce.domain.DialogDomainService;
 import ru.panyukovnn.videoretellingbot.serivce.domain.StarPaymentDomainService;
 import ru.panyukovnn.videoretellingbot.tool.YtSubtitlesTool;
+import ru.panyukovnn.videoretellingbot.util.Constants;
 import ru.panyukovnn.videoretellingbot.util.YoutubeLinkHelper;
 
 import java.util.Optional;
@@ -46,6 +47,10 @@ public class BotRetellingHandler {
         Optional<String> youtubeUrl = YoutubeLinkHelper.findYoutubeUrl(inputMessage);
 
         if (youtubeUrl.isPresent()) {
+            if (YoutubeLinkHelper.countYoutubeUrls(inputMessage) > 1) {
+                tgSender.send(chatId, Constants.MULTIPLE_LINKS_WARNING_MESSAGE);
+            }
+
             String userInstruction = YoutubeLinkHelper.extractUserInstruction(inputMessage, youtubeUrl.get())
                 .orElse(null);
 

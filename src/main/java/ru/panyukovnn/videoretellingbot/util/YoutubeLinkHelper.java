@@ -17,6 +17,20 @@ import static ru.panyukovnn.videoretellingbot.util.Constants.YOUTUBE_VIDEO_ID_PA
 public class YoutubeLinkHelper {
 
     /**
+     * Считает количество YouTube-ссылок в тексте.
+     */
+    public static int countYoutubeUrls(String text) {
+        Matcher matcher = YOUTUBE_URL_PATTERN.matcher(text);
+        int count = 0;
+
+        while (matcher.find()) {
+            count++;
+        }
+
+        return count;
+    }
+
+    /**
      * Ищет YouTube-ссылку внутри произвольного текста.
      * Возвращает найденный URL или пустой Optional.
      */
