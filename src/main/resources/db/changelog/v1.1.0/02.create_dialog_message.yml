@@ -12,38 +12,42 @@ databaseChangeLog:
                   type: uuid
                   constraints:
                     primaryKey: true
-                    primaryKeyName: pkey_dialog_message_id
               - column:
                   name: session_id
-                  type: uuid
+                  type: varchar
                   remarks: "Идентификатор сессии"
-                  constraints:
-                    nullable: false
-                    foreignKeyName: fkey_dialog_message_session_id
-                    references: dialog_session(id)
               - column:
                   name: role
                   type: varchar
-                  remarks: "Роль отправителя: USER, ASSISTANT, TOOL"
-                  constraints:
-                    nullable: false
+                  remarks: "Роль отправителя"
               - column:
                   name: content
                   type: text
                   remarks: "Содержимое сообщения"
+
               - column:
                   name: create_time
                   type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+                  constraints:
+                    nullable: false
                   remarks: "Время создания"
               - column:
                   name: create_user
                   type: varchar
-                  remarks: "Пользователь, который создал запись"
+                  constraints:
+                    nullable: false
+                  remarks: "Пользователь, создавший запись"
               - column:
                   name: last_update_time
                   type: timestamp
-                  remarks: "Время последнего изменения"
+                  defaultValueComputed: CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+                  constraints:
+                    nullable: false
+                  remarks: "Время обновления"
               - column:
                   name: last_update_user
                   type: varchar
-                  remarks: "Пользователь, который последним внес изменения"
+                  constraints:
+                    nullable: false
+                  remarks: "Пользователь, изменивший запись"

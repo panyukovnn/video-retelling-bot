@@ -12,7 +12,6 @@ databaseChangeLog:
                   type: uuid
                   constraints:
                     primaryKey: true
-                    primaryKeyName: pkey_star_payment_id
               - column:
                   name: client_id
                   type: uuid

@@ -11,9 +11,7 @@ databaseChangeLog:
                   type: int
                   remarks: "Количество использованных бесплатных пересказов за текущий день"
                   defaultValueNumeric: 0
-                  constraints:
-                    nullable: false
               - column:
                   name: daily_retellings_reset_date
-                  type: date
+                  type: timestamp
                   remarks: "Дата последнего сброса счётчика бесплатных пересказов"

@@ -67,14 +67,14 @@
 
 ### 2.4 Сервис проверки лимитов
 
-- [ ] Создать `AccessChecker` (пакет `service`):
+- [x] Создать `AccessChecker` (пакет `service`):
   - `checkAccess(Client client)` — возвращает `AccessResult`: `ALLOWED_FREE`, `ALLOWED_ADMIN`, `REQUIRES_PAYMENT`
   - Логика:
     1. `userId` в `AdminProperties.userIds` → `ALLOWED_ADMIN`
     2. `daily_retellings_reset_date != today` → сбросить счётчик (`used = 0`, дату обновить)
     3. `daily_retellings_used == 0` → `ALLOWED_FREE` (счётчик инкрементировать после успешного пересказа)
     4. Иначе → `REQUIRES_PAYMENT`
-- [ ] Создать внутренний enum `AccessResult` в `AccessChecker`
+- [x] Создать внутренний enum `AccessResult` в `AccessChecker`
 
 ---
 

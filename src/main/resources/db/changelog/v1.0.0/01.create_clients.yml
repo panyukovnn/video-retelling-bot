@@ -36,19 +36,30 @@ databaseChangeLog:
                   name: retellings_count
                   type: bigint
                   remarks: "Количество запросов на пересказ"
+
               - column:
                   name: create_time
                   type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+                  constraints:
+                    nullable: false
                   remarks: "Время создания"
               - column:
                   name: create_user
                   type: varchar
-                  remarks: "Пользователь, который создал запись"
+                  constraints:
+                    nullable: false
+                  remarks: "Пользователь, создавший запись"
               - column:
                   name: last_update_time
                   type: timestamp
-                  remarks: "Время последнего изменения"
+                  defaultValueComputed: CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+                  constraints:
+                    nullable: false
+                  remarks: "Время обновления"
               - column:
                   name: last_update_user
                   type: varchar
-                  remarks: "Пользователь, который последним внес изменения"
+                  constraints:
+                    nullable: false
+                  remarks: "Пользователь, изменивший запись"
