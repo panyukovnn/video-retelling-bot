@@ -49,14 +49,14 @@
 
 ### 2.3 Конфигурация администраторов
 
-- [ ] Создать `AdminProperties` (`@ConfigurationProperties("retelling.admin")`, пакет `property`):
+- [x] Создать `AdminProperties` (`@ConfigurationProperties("retelling.admin")`, пакет `property`):
   ```java
   @ConfigurationProperties("retelling.admin")
   public class AdminProperties {
       private List<Long> userIds = List.of();
   }
   ```
-- [ ] Добавить в `application.yml`:
+- [x] Добавить в `application.yml`:
   ```yaml
   retelling:
     admin:
