@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
+import ru.panyukovnn.longpollingtgbotstarter.service.StreamingMessageUpdater;
 import ru.panyukovnn.longpollingtgbotstarter.service.TgSender;
 import ru.panyukovnn.videoretellingbot.client.AiClient;
 import ru.panyukovnn.videoretellingbot.model.Client;
@@ -11,10 +13,15 @@ import ru.panyukovnn.videoretellingbot.model.DialogSession;
 import ru.panyukovnn.videoretellingbot.serivce.domain.DialogDomainService;
 import ru.panyukovnn.videoretellingbot.serivce.domain.StarPaymentDomainService;
 import ru.panyukovnn.videoretellingbot.tool.YtSubtitlesTool;
+import ru.panyukovnn.videoretellingbot.util.Constants;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ScheduledFuture;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,15 +33,61 @@ class BotRetellingHandlerUnitTest {
     private final YtSubtitlesTool ytSubtitlesTool = mock(YtSubtitlesTool.class);
     private final DialogDomainService dialogDomainService = mock(DialogDomainService.class);
     private final StarPaymentDomainService starPaymentDomainService = mock(StarPaymentDomainService.class);
+    private final TypingIndicator typingIndicator = mock(TypingIndicator.class);
 
     private final BotRetellingHandler handler = new BotRetellingHandler(
-        tgSender, aiClient, accessChecker, ytSubtitlesTool, dialogDomainService, starPaymentDomainService);
+        tgSender, aiClient, accessChecker, ytSubtitlesTool, dialogDomainService, starPaymentDomainService,
+        typingIndicator);
 
     @Nested
     class HandleRetelling {
 
         @Test
-        void when_handleRetelling_withYoutubeUrlAndFreeAccess_then_opensSessionAndSendsRetelling() {
+        void when_handleNewVideo_then_processingMessageSent() throws Exception {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenReturn("Subtitles text");
+            when(tgSender.sendStreaming(chatId)).thenReturn(mock(StreamingMessageUpdater.class));
+            when(aiClient.startRetellingStream(sessionId.toString(), videoUrl, "Subtitles text", null))
+                .thenReturn(Flux.just("Retelling text"));
+
+            handler.handleRetelling(chatId, client, videoUrl);
+
+            verify(tgSender).send(chatId, Constants.PROCESSING_MESSAGE);
+        }
+
+        @Test
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        void when_handleNewVideo_then_typingActionSent() throws Exception {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            ScheduledFuture typingTask = mock(ScheduledFuture.class);
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenReturn("Subtitles text");
+            when(tgSender.sendStreaming(chatId)).thenReturn(mock(StreamingMessageUpdater.class));
+            when(aiClient.startRetellingStream(sessionId.toString(), videoUrl, "Subtitles text", null))
+                .thenReturn(Flux.just("Retelling text"));
+            when(typingIndicator.start(chatId)).thenReturn(typingTask);
+
+            handler.handleRetelling(chatId, client, videoUrl);
+
+            verify(typingIndicator).start(chatId);
+            verify(typingIndicator).stop(typingTask);
+        }
+
+        @Test
+        void when_handleRetelling_withYoutubeUrlAndFreeAccess_then_opensSessionAndStartsStreaming() throws Exception {
             Long chatId = 100L;
             UUID clientId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -45,18 +98,20 @@ class BotRetellingHandlerUnitTest {
             when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
             when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
             when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenReturn(subtitles);
-            when(aiClient.startRetelling(sessionId.toString(), videoUrl, subtitles, null)).thenReturn("Retelling text");
+            when(tgSender.sendStreaming(chatId)).thenReturn(mock(StreamingMessageUpdater.class));
+            when(aiClient.startRetellingStream(sessionId.toString(), videoUrl, subtitles, null))
+                .thenReturn(Flux.just("Retelling text"));
 
             handler.handleRetelling(chatId, client, videoUrl);
 
-            verify(tgSender).send(chatId, "Извлекаю содержание...");
-            verify(tgSender).send(chatId, "Retelling text");
+            verify(tgSender).sendStreaming(chatId);
+            verify(tgSender).send(chatId, Constants.PROCESSING_MESSAGE);
             verify(tgSender).send(chatId, "Можете задавать вопросы по содержанию видео");
             verify(accessChecker).incrementDailyUsage(client);
         }
 
         @Test
-        void when_handleRetelling_withYoutubeUrlAndAdminAccess_then_opensSessionWithoutIncrement() {
+        void when_handleRetelling_withYoutubeUrlAndAdminAccess_then_opensSessionWithoutIncrement() throws Exception {
             Long chatId = 100L;
             UUID clientId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -67,11 +122,13 @@ class BotRetellingHandlerUnitTest {
             when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_ADMIN);
             when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
             when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenReturn(subtitles);
-            when(aiClient.startRetelling(sessionId.toString(), videoUrl, subtitles, null)).thenReturn("Retelling text");
+            when(tgSender.sendStreaming(chatId)).thenReturn(mock(StreamingMessageUpdater.class));
+            when(aiClient.startRetellingStream(sessionId.toString(), videoUrl, subtitles, null))
+                .thenReturn(Flux.just("Retelling text"));
 
             handler.handleRetelling(chatId, client, videoUrl);
 
-            verify(tgSender).send(chatId, "Retelling text");
+            verify(tgSender).sendStreaming(chatId);
             verify(accessChecker, never()).incrementDailyUsage(any());
         }
 
@@ -92,7 +149,7 @@ class BotRetellingHandlerUnitTest {
         }
 
         @Test
-        void when_handleRetelling_withRegularMessageAndActiveSession_then_continuesDialog() {
+        void when_handleRetelling_withRegularMessageAndActiveSession_then_startsStreamingDialog() throws Exception {
             Long chatId = 100L;
             UUID clientId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -100,12 +157,13 @@ class BotRetellingHandlerUnitTest {
             DialogSession activeSession = DialogSession.builder().id(sessionId).build();
 
             when(dialogDomainService.findActiveSession(clientId)).thenReturn(Optional.of(activeSession));
-            when(aiClient.continueDialog(sessionId.toString(), "What is the topic?"))
-                .thenReturn("The topic is...");
+            when(tgSender.sendStreaming(chatId)).thenReturn(mock(StreamingMessageUpdater.class));
+            when(aiClient.continueDialogStream(sessionId.toString(), "What is the topic?"))
+                .thenReturn(Flux.just("The topic is..."));
 
             handler.handleRetelling(chatId, client, "What is the topic?");
 
-            verify(tgSender).send(chatId, "The topic is...");
+            verify(tgSender).sendStreaming(chatId);
         }
 
         @Test
@@ -144,7 +202,52 @@ class BotRetellingHandlerUnitTest {
         }
 
         @Test
-        void when_handleRetelling_withContextExceeded_then_closesSessionAndNotifiesUser() {
+        void when_handleRetelling_withMultipleLinks_then_warningMessageSent() throws Exception {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String firstUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            String secondUrl = "https://www.youtube.com/watch?v=Qabcdefg123";
+            String inputMessage = firstUrl + " " + secondUrl;
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, firstUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(firstUrl)).thenReturn("Subtitles");
+            when(tgSender.sendStreaming(chatId)).thenReturn(mock(StreamingMessageUpdater.class));
+            when(aiClient.startRetellingStream(eq(sessionId.toString()), eq(firstUrl), anyString(), any()))
+                .thenReturn(Flux.just("Retelling"));
+
+            handler.handleRetelling(chatId, client, inputMessage);
+
+            verify(tgSender).send(chatId, Constants.MULTIPLE_LINKS_WARNING_MESSAGE);
+        }
+
+        @Test
+        void when_handleRetelling_withMultipleLinks_then_onlyFirstProcessed() throws Exception {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String firstUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            String secondUrl = "https://www.youtube.com/watch?v=Qabcdefg123";
+            String inputMessage = firstUrl + " " + secondUrl;
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, firstUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(firstUrl)).thenReturn("Subtitles");
+            when(tgSender.sendStreaming(chatId)).thenReturn(mock(StreamingMessageUpdater.class));
+            when(aiClient.startRetellingStream(eq(sessionId.toString()), eq(firstUrl), anyString(), any()))
+                .thenReturn(Flux.just("Retelling"));
+
+            handler.handleRetelling(chatId, client, inputMessage);
+
+            verify(ytSubtitlesTool).loadSubtitles(firstUrl);
+            verify(ytSubtitlesTool, never()).loadSubtitles(secondUrl);
+        }
+
+        @Test
+        void when_handleRetelling_withContextExceeded_then_closesSessionAndNotifiesUser() throws Exception {
             Long chatId = 100L;
             UUID clientId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -152,8 +255,9 @@ class BotRetellingHandlerUnitTest {
             DialogSession activeSession = DialogSession.builder().id(sessionId).build();
 
             when(dialogDomainService.findActiveSession(clientId)).thenReturn(Optional.of(activeSession));
-            when(aiClient.continueDialog(sessionId.toString(), "Next question?"))
-                .thenThrow(new RuntimeException("Context limit exceeded"));
+            when(tgSender.sendStreaming(chatId)).thenReturn(mock(StreamingMessageUpdater.class));
+            when(aiClient.continueDialogStream(sessionId.toString(), "Next question?"))
+                .thenReturn(Flux.error(new RuntimeException("Context limit exceeded")));
 
             handler.handleRetelling(chatId, client, "Next question?");
 

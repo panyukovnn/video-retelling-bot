@@ -6,6 +6,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -16,6 +18,11 @@ public class SchedulerConfig {
     @Bean(destroyMethod = "shutdown")
     public ExecutorService tgListenerExecutor() {
         return createElasticScheduler(10, 100);
+    }
+
+    @Bean(destroyMethod = "shutdown")
+    public ScheduledExecutorService typingSchedulerExecutor() {
+        return Executors.newScheduledThreadPool(5);
     }
 
     private static ThreadPoolExecutor createElasticScheduler(int threadsNumber, int queueCapacity) {
