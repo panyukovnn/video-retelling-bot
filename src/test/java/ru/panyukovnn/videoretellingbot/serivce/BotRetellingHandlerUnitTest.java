@@ -193,6 +193,27 @@ class BotRetellingHandlerUnitTest {
         }
 
         @Test
+        void when_handleRetelling_withSubtitlesLoadingFailure_then_closesSessionAndRethrows() {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenThrow(new RuntimeException("Subtitles loading failed"));
+
+            org.junit.jupiter.api.Assertions.assertThrows(
+                RuntimeException.class,
+                () -> handler.handleRetelling(chatId, client, videoUrl)
+            );
+
+            verify(dialogDomainService).closeSession(sessionId);
+            verifyNoInteractions(aiClient);
+        }
+
+        @Test
         void when_handleRetelling_withMultipleLinks_then_warningMessageSent() {
             Long chatId = 100L;
             UUID clientId = UUID.randomUUID();
