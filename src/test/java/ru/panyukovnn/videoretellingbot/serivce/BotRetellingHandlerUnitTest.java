@@ -15,6 +15,7 @@ import ru.panyukovnn.videoretellingbot.util.Constants;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ScheduledFuture;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -30,9 +31,11 @@ class BotRetellingHandlerUnitTest {
     private final YtSubtitlesTool ytSubtitlesTool = mock(YtSubtitlesTool.class);
     private final DialogDomainService dialogDomainService = mock(DialogDomainService.class);
     private final StarPaymentDomainService starPaymentDomainService = mock(StarPaymentDomainService.class);
+    private final TypingIndicator typingIndicator = mock(TypingIndicator.class);
 
     private final BotRetellingHandler handler = new BotRetellingHandler(
-        tgSender, aiClient, accessChecker, ytSubtitlesTool, dialogDomainService, starPaymentDomainService);
+        tgSender, aiClient, accessChecker, ytSubtitlesTool, dialogDomainService, starPaymentDomainService,
+        typingIndicator);
 
     @Nested
     class HandleRetelling {

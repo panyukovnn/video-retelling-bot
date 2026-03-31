@@ -16,13 +16,13 @@ import ru.panyukovnn.videoretellingbot.util.YoutubeLinkHelper;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ScheduledFuture;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class BotRetellingHandler {
 
-    private static final String MSG_EXTRACTING = "Извлекаю содержание...";
     private static final String MSG_QUESTIONS_WELCOME = "Можете задавать вопросы по содержанию видео";
     private static final String MSG_NO_SESSION = "Пришлите ссылку на YouTube-видео";
     private static final String MSG_CONTEXT_EXCEEDED =
@@ -36,6 +36,7 @@ public class BotRetellingHandler {
     private final YtSubtitlesTool ytSubtitlesTool;
     private final DialogDomainService dialogDomainService;
     private final StarPaymentDomainService starPaymentDomainService;
+    private final TypingIndicator typingIndicator;
 
     public void handleRetelling(Long chatId, Client client, String inputMessage) {
         if (YoutubeLinkHelper.isValidYoutubeUrl(inputMessage)) {
@@ -73,8 +74,9 @@ public class BotRetellingHandler {
         }
 
         UUID sessionId = dialogDomainService.openSession(client, videoUrl);
+        tgSender.send(chatId, Constants.PROCESSING_MESSAGE);
 
-        tgSender.send(chatId, MSG_EXTRACTING);
+        ScheduledFuture<?> typingTask = typingIndicator.start(chatId);
 
         try {
             String subtitles = ytSubtitlesTool.loadSubtitles(videoUrl);
@@ -90,6 +92,8 @@ public class BotRetellingHandler {
             dialogDomainService.closeSession(sessionId);
 
             throw e;
+        } finally {
+            typingIndicator.stop(typingTask);
         }
     }
 
@@ -103,6 +107,7 @@ public class BotRetellingHandler {
         }
 
         UUID sessionId = activeSession.get().getId();
+        ScheduledFuture<?> typingTask = typingIndicator.start(chatId);
 
         try {
             String answer = aiClient.continueDialog(sessionId.toString(), userMessage);
@@ -113,6 +118,8 @@ public class BotRetellingHandler {
 
             dialogDomainService.closeSession(sessionId);
             tgSender.send(chatId, MSG_CONTEXT_EXCEEDED);
+        } finally {
+            typingIndicator.stop(typingTask);
         }
     }
 }
