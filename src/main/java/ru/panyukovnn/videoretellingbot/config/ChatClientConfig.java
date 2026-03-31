@@ -2,7 +2,6 @@ package ru.panyukovnn.videoretellingbot.config;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.ChatModelCallAdvisor;
-import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
@@ -23,14 +22,11 @@ public class ChatClientConfig {
     @Bean
     public ChatClient chatClient(
             ChatModel chatModel,
-            MessageWindowChatMemory messageWindowChatMemory,
             SubtitlesLoaderTool subtitlesLoaderTool) {
         return ChatClient.builder(chatModel)
             .defaultAdvisors(
                 ChatModelCallAdvisor.builder()
                     .chatModel(chatModel)
-                    .build(),
-                MessageChatMemoryAdvisor.builder(messageWindowChatMemory)
                     .build()
             )
             .defaultTools(subtitlesLoaderTool)

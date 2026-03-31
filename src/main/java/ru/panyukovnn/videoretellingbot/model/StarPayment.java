@@ -3,7 +3,6 @@ package ru.panyukovnn.videoretellingbot.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -13,27 +12,26 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "clients")
-public class Client extends AuditableEntity {
+@Table(name = "star_payment")
+public class StarPayment extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private Long tgUserId;
-    private Long tgLastChatId;
-    private String username;
-    private String firstname;
-    private String lastname;
-    private Long retellingsCount;
-    private Integer dailyRetellingsUsed;
-    private LocalDate dailyRetellingsResetDate;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id")
+    private Client client;
+
+    private String telegramChargeId;
+    private String videoUrl;
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        Client client = (Client) o;
-        return Objects.equals(id, client.id);
+        StarPayment that = (StarPayment) o;
+
+        return Objects.equals(id, that.id);
     }
 
     @Override

@@ -41,9 +41,9 @@
 
 ### 2.2 JPA-модели и репозитории
 
-- [ ] Добавить поля `dailyRetellingsUsed` и `dailyRetellingsResetDate` в entity `Client`
-- [ ] Создать entity `StarPayment extends AuditableEntity` (пакет `model`)
-- [ ] Создать `StarPaymentRepository` (пакет `repository`) с методом `existsByTelegramChargeId()`
+- [x] Добавить поля `dailyRetellingsUsed` и `dailyRetellingsResetDate` в entity `Client`
+- [x] Создать entity `StarPayment extends AuditableEntity` (пакет `model`)
+- [x] Создать `StarPaymentRepository` (пакет `repository`) с методом `existsByTelegramChargeId()`
 
 ---
 
