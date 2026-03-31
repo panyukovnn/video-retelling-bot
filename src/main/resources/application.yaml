@@ -32,10 +32,13 @@ spring:
           max-tokens: 8000 # Токенов специально немного меньше максимума
 
 retelling:
+  admin:
+    user-ids: []
   yt-subtitles-loader-jar-path: "/Users/nikolay/dev/shell-services/yt-subtitles-loader-1.0.0-RC2.jar"
   prompt:
     youtube-retelling: ${YOUTUBE_RETELLING_PROMPT}
   rest-timeout: 180000
+  dialog-context-limit-tokens: 200000
 
 telegram:
   bot:

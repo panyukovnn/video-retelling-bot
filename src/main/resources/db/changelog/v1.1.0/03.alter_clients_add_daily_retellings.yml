@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: "03.alter_clients_add_daily_retellings.yml"
+      author: "Panyukov NN"
+      changes:
+        - addColumn:
+            tableName: clients
+            columns:
+              - column:
+                  name: daily_retellings_used
+                  type: int
+                  remarks: "Количество использованных бесплатных пересказов за текущий день"
+                  defaultValueNumeric: 0
+              - column:
+                  name: daily_retellings_reset_date
+                  type: timestamp
+                  remarks: "Дата последнего сброса счётчика бесплатных пересказов"

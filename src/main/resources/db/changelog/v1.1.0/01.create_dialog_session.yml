@@ -1,11 +1,11 @@
 databaseChangeLog:
   - changeSet:
-      id: "01.create_clients.yml"
+      id: "01.create_dialog_session.yml"
       author: "Panyukov NN"
       changes:
         - createTable:
-            tableName: clients
-            remarks: "Информация о пользователе"
+            tableName: dialog_session
+            remarks: "Сессия диалога пользователя с ботом"
             columns:
               - column:
                   name: id
@@ -13,29 +13,21 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
               - column:
-                  name: tg_user_id
-                  type: bigint
-                  remarks: "Идентификатор пользователя в телеграм"
+                  name: client_id
+                  type: uuid
+                  remarks: "Идентификатор клиента"
               - column:
-                  name: tg_last_chat_id
-                  type: bigint
-                  remarks: "Идентификатор чата, куда написал пользователь"
-              - column:
-                  name: username
+                  name: video_url
                   type: varchar
-                  remarks: "Логин"
+                  remarks: "URL видео для пересказа"
               - column:
-                  name: firstname
+                  name: status
                   type: varchar
-                  remarks: "Имя"
+                  remarks: "Статус сессии"
               - column:
-                  name: lastname
-                  type: varchar
-                  remarks: "Фамилия"
-              - column:
-                  name: retellings_count
-                  type: bigint
-                  remarks: "Количество запросов на пересказ"
+                  name: closed_at
+                  type: timestamp
+                  remarks: "Время закрытия сессии"
 
               - column:
                   name: create_time

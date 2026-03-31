@@ -1,11 +1,11 @@
 databaseChangeLog:
   - changeSet:
-      id: "01.create_clients.yml"
+      id: "04.create_star_payment.yml"
       author: "Panyukov NN"
       changes:
         - createTable:
-            tableName: clients
-            remarks: "Информация о пользователе"
+            tableName: star_payment
+            remarks: "Запись об оплате пересказа через Telegram Stars"
             columns:
               - column:
                   name: id
@@ -13,29 +13,17 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
               - column:
-                  name: tg_user_id
-                  type: bigint
-                  remarks: "Идентификатор пользователя в телеграм"
+                  name: client_id
+                  type: uuid
+                  remarks: "Идентификатор клиента"
               - column:
-                  name: tg_last_chat_id
-                  type: bigint
-                  remarks: "Идентификатор чата, куда написал пользователь"
-              - column:
-                  name: username
+                  name: telegram_charge_id
                   type: varchar
-                  remarks: "Логин"
+                  remarks: "Уникальный идентификатор транзакции от Telegram"
               - column:
-                  name: firstname
+                  name: video_url
                   type: varchar
-                  remarks: "Имя"
-              - column:
-                  name: lastname
-                  type: varchar
-                  remarks: "Фамилия"
-              - column:
-                  name: retellings_count
-                  type: bigint
-                  remarks: "Количество запросов на пересказ"
+                  remarks: "URL видео, за пересказ которого произведена оплата"
 
               - column:
                   name: create_time

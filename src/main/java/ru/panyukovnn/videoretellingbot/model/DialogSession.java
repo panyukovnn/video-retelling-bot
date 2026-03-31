@@ -13,27 +13,31 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "clients")
-public class Client extends AuditableEntity {
+@Table(name = "dialog_session")
+public class DialogSession extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private Long tgUserId;
-    private Long tgLastChatId;
-    private String username;
-    private String firstname;
-    private String lastname;
-    private Long retellingsCount;
-    private Integer dailyRetellingsUsed;
-    private LocalDateTime dailyRetellingsResetDate;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id", nullable = false)
+    private Client client;
+
+    private String videoUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private DialogSessionStatus status;
+
+    private LocalDateTime closedAt;
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        Client client = (Client) o;
-        return Objects.equals(id, client.id);
+        DialogSession that = (DialogSession) o;
+
+        return Objects.equals(id, that.id);
     }
 
     @Override

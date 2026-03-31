@@ -5,6 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import ru.panyukovnn.longpollingtgbotstarter.config.TgBotApi;
+import ru.panyukovnn.longpollingtgbotstarter.service.TgSender;
 import ru.panyukovnn.videoretellingbot.client.AiClient;
 import ru.panyukovnn.videoretellingbot.listener.TgBotListener;
 import ru.panyukovnn.videoretellingbot.repository.ClientRepository;
@@ -25,4 +26,6 @@ public abstract class AbstractTest {
     protected AiClient aiClient;
     @MockBean
     protected YtSubtitlesTool ytSubtitlesTool;
+    @MockBean
+    protected TgSender tgSender;
 }

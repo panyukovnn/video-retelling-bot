@@ -3,8 +3,10 @@ package ru.panyukovnn.videoretellingbot.client;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.stereotype.Service;
+import ru.panyukovnn.videoretellingbot.property.PromptProperties;
 
 @Slf4j
 @Service
@@ -12,17 +14,49 @@ import org.springframework.stereotype.Service;
 public class AiClient {
 
     private final ChatClient chatClient;
+    private final MessageWindowChatMemory messageWindowChatMemory;
+    private final PromptProperties promptProperties;
 
-    public String promptingCall(String requestType, String prompt, String contentToRetell) {
-        log.info("Отправляю запрос в AI для: {}", requestType);
+    /**
+     * Начинает диалог с пересказом видео.
+     * LLM самостоятельно вызывает tool загрузки субтитров.
+     */
+    public String startRetelling(String conversationId, String videoUrl) {
+        log.info("Начинаю пересказ видео. conversationId: {}", conversationId);
 
         String content = chatClient.prompt()
-            .system(prompt)
-            .user(contentToRetell)
+            .system(promptProperties.getYoutubeRetelling())
+            .user(videoUrl)
+            .advisors(
+                MessageChatMemoryAdvisor.builder(messageWindowChatMemory)
+                    .conversationId(conversationId)
+                    .build()
+            )
             .call()
             .content();
 
-        log.info("Ответ LLM: {}", content);
+        log.info("Пересказ сформирован. conversationId: {}", conversationId);
+
+        return content;
+    }
+
+    /**
+     * Продолжает существующий диалог, отвечая на вопрос пользователя.
+     */
+    public String continueDialog(String conversationId, String userMessage) {
+        log.info("Продолжаю диалог. conversationId: {}", conversationId);
+
+        String content = chatClient.prompt()
+            .user(userMessage)
+            .advisors(
+                MessageChatMemoryAdvisor.builder(messageWindowChatMemory)
+                    .conversationId(conversationId)
+                    .build()
+            )
+            .call()
+            .content();
+
+        log.info("Ответ на вопрос сформирован. conversationId: {}", conversationId);
 
         return content;
     }
