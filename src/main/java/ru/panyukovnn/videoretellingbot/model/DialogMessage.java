@@ -24,10 +24,8 @@ public class DialogMessage extends AuditableEntity {
     private DialogSession session;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private MessageRole role;
 
-    @Column(columnDefinition = "text")
     private String content;
 
     @Override

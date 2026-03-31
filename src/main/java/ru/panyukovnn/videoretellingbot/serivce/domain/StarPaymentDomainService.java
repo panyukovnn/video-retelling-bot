@@ -35,6 +35,7 @@ public class StarPaymentDomainService {
             .description(INVOICE_DESCRIPTION)
             .payload(videoUrl)
             .providerToken("")
+            .startParameter("")
             .currency(CURRENCY_XTR)
             .price(new LabeledPrice(INVOICE_TITLE, STAR_PRICE))
             .build();

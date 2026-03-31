@@ -9,6 +9,7 @@ import ru.panyukovnn.videoretellingbot.client.AiClient;
 import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.DialogSession;
 import ru.panyukovnn.videoretellingbot.serivce.domain.DialogDomainService;
+import ru.panyukovnn.videoretellingbot.serivce.domain.StarPaymentDomainService;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -20,21 +21,25 @@ class BotRetellingHandlerUnitTest {
 
     private final TgSender tgSender = mock(TgSender.class);
     private final AiClient aiClient = mock(AiClient.class);
+    private final AccessChecker accessChecker = mock(AccessChecker.class);
     private final DialogDomainService dialogDomainService = mock(DialogDomainService.class);
+    private final StarPaymentDomainService starPaymentDomainService = mock(StarPaymentDomainService.class);
 
-    private final BotRetellingHandler handler = new BotRetellingHandler(tgSender, aiClient, dialogDomainService);
+    private final BotRetellingHandler handler = new BotRetellingHandler(
+        tgSender, aiClient, accessChecker, dialogDomainService, starPaymentDomainService);
 
     @Nested
     class HandleRetelling {
 
         @Test
-        void when_handleRetelling_withYoutubeUrl_then_opensSessionAndSendsRetelling() {
+        void when_handleRetelling_withYoutubeUrlAndFreeAccess_then_opensSessionAndSendsRetelling() {
             Long chatId = 100L;
             UUID clientId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
             Client client = Client.builder().id(clientId).build();
             String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
             when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
             when(aiClient.startRetelling(sessionId.toString(), videoUrl)).thenReturn("Retelling text");
 
@@ -43,6 +48,41 @@ class BotRetellingHandlerUnitTest {
             verify(tgSender).send(chatId, "Извлекаю содержание...");
             verify(tgSender).send(chatId, "Retelling text");
             verify(tgSender).send(chatId, "Можете задавать вопросы по содержанию видео");
+            verify(accessChecker).incrementDailyUsage(client);
+        }
+
+        @Test
+        void when_handleRetelling_withYoutubeUrlAndAdminAccess_then_opensSessionWithoutIncrement() {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_ADMIN);
+            when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
+            when(aiClient.startRetelling(sessionId.toString(), videoUrl)).thenReturn("Retelling text");
+
+            handler.handleRetelling(chatId, client, videoUrl);
+
+            verify(tgSender).send(chatId, "Retelling text");
+            verify(accessChecker, never()).incrementDailyUsage(any());
+        }
+
+        @Test
+        void when_handleRetelling_withYoutubeUrlAndRequiresPayment_then_sendsInvoice() {
+            Long chatId = 100L;
+            Client client = Client.builder().id(UUID.randomUUID()).build();
+            String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.REQUIRES_PAYMENT);
+
+            handler.handleRetelling(chatId, client, videoUrl);
+
+            verify(tgSender).send(chatId, BotRetellingHandler.MSG_REQUIRES_PAYMENT);
+            verify(starPaymentDomainService).sendInvoice(chatId, videoUrl);
+            verifyNoInteractions(aiClient);
+            verifyNoInteractions(dialogDomainService);
         }
 
         @Test

@@ -3,7 +3,7 @@ package ru.panyukovnn.videoretellingbot.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -27,7 +27,7 @@ public class Client extends AuditableEntity {
     private String lastname;
     private Long retellingsCount;
     private Integer dailyRetellingsUsed;
-    private LocalDate dailyRetellingsResetDate;
+    private LocalDateTime dailyRetellingsResetDate;
 
     @Override
     public boolean equals(Object o) {

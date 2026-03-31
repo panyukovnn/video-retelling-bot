@@ -130,10 +130,10 @@
 
 ### 2.10 Тесты
 
-- [ ] Unit-тест `AccessCheckerTest`:
+- [x] Unit-тест `AccessCheckerTest`:
   - Администратор → всегда `ALLOWED_ADMIN`
   - Первый пересказ сегодня → `ALLOWED_FREE`
   - Второй пересказ сегодня → `REQUIRES_PAYMENT`
   - Первый пересказ после смены дня → `ALLOWED_FREE` (счётчик сброшен)
-- [ ] Unit-тест `StarPaymentDomainServiceTest` — сохранение и поиск платежей
-- [ ] Unit-тест `BotRetellingHandlerTest` — ветки с проверкой доступа
+- [x] Unit-тест `StarPaymentDomainServiceTest` — сохранение и поиск платежей
+- [x] Unit-тест `BotRetellingHandlerTest` — ветки с проверкой доступа

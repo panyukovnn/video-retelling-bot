@@ -22,7 +22,7 @@ databaseChangeLog:
                   remarks: "Роль отправителя"
               - column:
                   name: content
-                  type: text
+                  type: varchar
                   remarks: "Содержимое сообщения"
 
               - column:

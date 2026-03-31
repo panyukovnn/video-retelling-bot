@@ -7,6 +7,7 @@ import ru.panyukovnn.videoretellingbot.property.AdminProperties;
 import ru.panyukovnn.videoretellingbot.repository.ClientRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -35,16 +36,17 @@ public class AccessChecker {
     public void incrementDailyUsage(Client client) {
         int currentUsed = client.getDailyRetellingsUsed() == null ? 0 : client.getDailyRetellingsUsed();
         client.setDailyRetellingsUsed(currentUsed + 1);
-        client.setDailyRetellingsResetDate(LocalDate.now());
+        client.setDailyRetellingsResetDate(LocalDateTime.now());
         clientRepository.save(client);
     }
 
     private void resetDailyCounterIfNeeded(Client client) {
         LocalDate today = LocalDate.now();
+        LocalDateTime resetDate = client.getDailyRetellingsResetDate();
 
-        if (!today.equals(client.getDailyRetellingsResetDate())) {
+        if (resetDate == null || !today.equals(resetDate.toLocalDate())) {
             client.setDailyRetellingsUsed(0);
-            client.setDailyRetellingsResetDate(today);
+            client.setDailyRetellingsResetDate(LocalDateTime.now());
             clientRepository.save(client);
         }
     }
