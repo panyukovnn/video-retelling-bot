@@ -88,7 +88,7 @@
 
 ### 2.6 Обработка Telegram-событий оплаты
 
-- [ ] В `TgBotListener` добавить обработку новых типов Update:
+- [x] В `TgBotListener` добавить обработку новых типов Update:
   - `pre_checkout_query`:
     - Вызвать `answerPreCheckoutQuery(queryId, ok=true)` немедленно
     - Логировать факт получения
