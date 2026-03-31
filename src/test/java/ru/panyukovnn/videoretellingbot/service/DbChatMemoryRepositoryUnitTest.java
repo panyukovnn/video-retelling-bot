@@ -70,14 +70,13 @@ class DbChatMemoryRepositoryUnitTest {
         @Test
         void when_findByConversationId_then_returnsMappedMessages() {
             UUID sessionId = UUID.randomUUID();
-            DialogSession session = DialogSession.builder().id(sessionId).build();
 
             DialogMessage userMsg = DialogMessage.builder()
-                .session(session).role(MessageRole.USER).content("user text").build();
+                .sessionId(sessionId).role(MessageRole.USER).content("user text").build();
             DialogMessage assistantMsg = DialogMessage.builder()
-                .session(session).role(MessageRole.ASSISTANT).content("assistant text").build();
+                .sessionId(sessionId).role(MessageRole.ASSISTANT).content("assistant text").build();
             DialogMessage toolMsg = DialogMessage.builder()
-                .session(session).role(MessageRole.TOOL).content("tool text").build();
+                .sessionId(sessionId).role(MessageRole.TOOL).content("tool text").build();
 
             when(dialogMessageRepository.findBySessionIdOrderByCreateTimeAsc(sessionId))
                 .thenReturn(List.of(userMsg, assistantMsg, toolMsg));
@@ -131,7 +130,7 @@ class DbChatMemoryRepositoryUnitTest {
             assertThat(saved, hasSize(2));
             assertEquals(MessageRole.USER, saved.get(0).getRole());
             assertEquals("user content", saved.get(0).getContent());
-            assertEquals(session, saved.get(0).getSession());
+            assertEquals(sessionId, saved.get(0).getSessionId());
             assertEquals(MessageRole.ASSISTANT, saved.get(1).getRole());
             assertEquals("assistant content", saved.get(1).getContent());
         }

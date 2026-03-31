@@ -8,7 +8,7 @@ import ru.panyukovnn.videoretellingbot.model.DialogSession;
 import ru.panyukovnn.videoretellingbot.model.DialogSessionStatus;
 import ru.panyukovnn.videoretellingbot.repository.DialogSessionRepository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,7 +29,7 @@ public class DialogDomainService {
             .ifPresent(this::closeActiveSession);
 
         DialogSession newSession = DialogSession.builder()
-            .client(client)
+            .clientId(client.getId())
             .videoUrl(videoUrl)
             .status(DialogSessionStatus.ACTIVE)
             .build();
@@ -46,14 +46,14 @@ public class DialogDomainService {
         dialogSessionRepository.findById(sessionId)
             .ifPresent(session -> {
                 session.setStatus(DialogSessionStatus.CLOSED);
-                session.setClosedAt(LocalDateTime.now());
+                session.setClosedAt(Instant.now());
                 dialogSessionRepository.save(session);
             });
     }
 
     private void closeActiveSession(DialogSession session) {
         session.setStatus(DialogSessionStatus.CLOSED);
-        session.setClosedAt(LocalDateTime.now());
+        session.setClosedAt(Instant.now());
         dialogSessionRepository.save(session);
     }
 }

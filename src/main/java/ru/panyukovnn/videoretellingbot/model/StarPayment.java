@@ -18,16 +18,22 @@ public class StarPayment extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_id")
-    private Client client;
-
+    /**
+     * Идентификатор клиента
+     */
+    private UUID clientId;
+    /**
+     * Уникальный идентификатор транзакции от Telegram
+     */
     private String telegramChargeId;
+    /**
+     * URL видео, за пересказ которого произведена оплата
+     */
     private String videoUrl;
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         StarPayment that = (StarPayment) o;
 

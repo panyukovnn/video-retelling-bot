@@ -1,5 +1,6 @@
 package ru.panyukovnn.videoretellingbot.serivce;
 
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.DialogSession;
 import ru.panyukovnn.videoretellingbot.serivce.domain.DialogDomainService;
 import ru.panyukovnn.videoretellingbot.serivce.domain.StarPaymentDomainService;
+import ru.panyukovnn.videoretellingbot.tool.YtSubtitlesTool;
 import ru.panyukovnn.videoretellingbot.util.YoutubeLinkHelper;
 
 import java.util.Optional;
@@ -30,18 +32,32 @@ public class BotRetellingHandler {
     private final TgSender tgSender;
     private final AiClient aiClient;
     private final AccessChecker accessChecker;
+    private final YtSubtitlesTool ytSubtitlesTool;
     private final DialogDomainService dialogDomainService;
     private final StarPaymentDomainService starPaymentDomainService;
 
     public void handleRetelling(Long chatId, Client client, String inputMessage) {
         if (YoutubeLinkHelper.isValidYoutubeUrl(inputMessage)) {
-            handleNewVideo(chatId, client, inputMessage);
-        } else {
-            handleUserQuestion(chatId, client, inputMessage);
+            handleNewVideo(chatId, client, inputMessage, null);
+
+            return;
         }
+
+        Optional<String> youtubeUrl = YoutubeLinkHelper.findYoutubeUrl(inputMessage);
+
+        if (youtubeUrl.isPresent()) {
+            String userInstruction = YoutubeLinkHelper.extractUserInstruction(inputMessage, youtubeUrl.get())
+                .orElse(null);
+
+            handleNewVideo(chatId, client, youtubeUrl.get(), userInstruction);
+
+            return;
+        }
+
+        handleUserQuestion(chatId, client, inputMessage);
     }
 
-    private void handleNewVideo(Long chatId, Client client, String videoUrl) {
+    private void handleNewVideo(Long chatId, Client client, String videoUrl, @Nullable String userInstruction) {
         AccessChecker.AccessResult accessResult = accessChecker.checkAccess(client);
 
         if (AccessChecker.AccessResult.REQUIRES_PAYMENT == accessResult) {
@@ -56,7 +72,8 @@ public class BotRetellingHandler {
         tgSender.send(chatId, MSG_EXTRACTING);
 
         try {
-            String retelling = aiClient.startRetelling(sessionId.toString(), videoUrl);
+            String subtitles = ytSubtitlesTool.loadSubtitles(videoUrl);
+            String retelling = aiClient.startRetelling(sessionId.toString(), videoUrl, subtitles, userInstruction);
 
             tgSender.send(chatId, retelling);
             tgSender.send(chatId, MSG_QUESTIONS_WELCOME);

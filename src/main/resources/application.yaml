@@ -33,7 +33,7 @@ spring:
 
 retelling:
   admin:
-    user-ids: []
+    user-ids: [ 368837634 ]
   yt-subtitles-loader-jar-path: "/Users/nikolay/dev/shell-services/yt-subtitles-loader-1.0.0-RC2.jar"
   prompt:
     youtube-retelling: ${YOUTUBE_RETELLING_PROMPT}

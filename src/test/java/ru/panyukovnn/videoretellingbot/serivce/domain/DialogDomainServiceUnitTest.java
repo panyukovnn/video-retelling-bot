@@ -47,7 +47,7 @@ class DialogDomainServiceUnitTest {
             verify(dialogSessionRepository).save(captor.capture());
 
             DialogSession created = captor.getValue();
-            assertEquals(client, created.getClient());
+            assertEquals(clientId, created.getClientId());
             assertEquals("https://youtube.com/watch?v=abc", created.getVideoUrl());
             assertEquals(DialogSessionStatus.ACTIVE, created.getStatus());
         }

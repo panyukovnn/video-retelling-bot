@@ -1,5 +1,6 @@
 package ru.panyukovnn.videoretellingbot.client;
 
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -19,14 +20,20 @@ public class AiClient {
 
     /**
      * Начинает диалог с пересказом видео.
-     * LLM самостоятельно вызывает tool загрузки субтитров.
+     * Субтитры передаются напрямую в сообщение пользователя, чтобы они всегда были доступны в истории диалога.
+     * Если передан userInstruction — добавляется к субтитрам как уточняющий запрос.
      */
-    public String startRetelling(String conversationId, String videoUrl) {
+    public String startRetelling(String conversationId, String videoUrl, String subtitles, @Nullable String userInstruction) {
         log.info("Начинаю пересказ видео. conversationId: {}", conversationId);
+
+        String subtitlesContext = "Субтитры видео (" + videoUrl + "):\n" + subtitles;
+        String userMessage = userInstruction == null
+            ? subtitlesContext
+            : subtitlesContext + "\n\n" + userInstruction;
 
         String content = chatClient.prompt()
             .system(promptProperties.getYoutubeRetelling())
-            .user(videoUrl)
+            .user(userMessage)
             .advisors(
                 MessageChatMemoryAdvisor.builder(messageWindowChatMemory)
                     .conversationId(conversationId)

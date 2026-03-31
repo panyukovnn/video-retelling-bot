@@ -7,7 +7,6 @@ import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.panyukovnn.videoretellingbot.tool.SubtitlesLoaderTool;
 
 @Configuration
 public class ChatClientConfig {
@@ -20,16 +19,13 @@ public class ChatClientConfig {
     }
 
     @Bean
-    public ChatClient chatClient(
-            ChatModel chatModel,
-            SubtitlesLoaderTool subtitlesLoaderTool) {
+    public ChatClient chatClient(ChatModel chatModel) {
         return ChatClient.builder(chatModel)
             .defaultAdvisors(
                 ChatModelCallAdvisor.builder()
                     .chatModel(chatModel)
                     .build()
             )
-            .defaultTools(subtitlesLoaderTool)
             .build();
     }
 }

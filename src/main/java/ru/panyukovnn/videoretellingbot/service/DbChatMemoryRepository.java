@@ -16,7 +16,7 @@ import ru.panyukovnn.videoretellingbot.model.MessageRole;
 import ru.panyukovnn.videoretellingbot.repository.DialogMessageRepository;
 import ru.panyukovnn.videoretellingbot.repository.DialogSessionRepository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -54,7 +54,7 @@ public class DbChatMemoryRepository implements ChatMemoryRepository {
     @Transactional
     public void saveAll(String conversationId, List<Message> messages) {
         UUID sessionId = UUID.fromString(conversationId);
-        DialogSession session = dialogSessionRepository.findById(sessionId)
+        dialogSessionRepository.findById(sessionId)
             .orElseThrow(() -> new RetellingException(
                 "f769", "Сессия диалога не найдена по идентификатору: " + conversationId
             ));
@@ -62,7 +62,7 @@ public class DbChatMemoryRepository implements ChatMemoryRepository {
         dialogMessageRepository.deleteBySessionId(sessionId);
 
         List<DialogMessage> dialogMessages = messages.stream()
-            .map(message -> toDialogMessage(message, session))
+            .map(message -> toDialogMessage(message, sessionId))
             .toList();
 
         dialogMessageRepository.saveAll(dialogMessages);
@@ -76,14 +76,14 @@ public class DbChatMemoryRepository implements ChatMemoryRepository {
         dialogSessionRepository.findById(sessionId)
             .ifPresent(session -> {
                 session.setStatus(DialogSessionStatus.CLOSED);
-                session.setClosedAt(LocalDateTime.now());
+                session.setClosedAt(Instant.now());
                 dialogSessionRepository.save(session);
             });
     }
 
-    private DialogMessage toDialogMessage(Message message, DialogSession session) {
+    private DialogMessage toDialogMessage(Message message, UUID sessionId) {
         return DialogMessage.builder()
-            .session(session)
+            .sessionId(sessionId)
             .role(toMessageRole(message.getMessageType()))
             .content(message.getText())
             .build();

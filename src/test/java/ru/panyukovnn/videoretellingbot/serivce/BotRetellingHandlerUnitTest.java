@@ -10,6 +10,7 @@ import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.DialogSession;
 import ru.panyukovnn.videoretellingbot.serivce.domain.DialogDomainService;
 import ru.panyukovnn.videoretellingbot.serivce.domain.StarPaymentDomainService;
+import ru.panyukovnn.videoretellingbot.tool.YtSubtitlesTool;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -22,11 +23,12 @@ class BotRetellingHandlerUnitTest {
     private final TgSender tgSender = mock(TgSender.class);
     private final AiClient aiClient = mock(AiClient.class);
     private final AccessChecker accessChecker = mock(AccessChecker.class);
+    private final YtSubtitlesTool ytSubtitlesTool = mock(YtSubtitlesTool.class);
     private final DialogDomainService dialogDomainService = mock(DialogDomainService.class);
     private final StarPaymentDomainService starPaymentDomainService = mock(StarPaymentDomainService.class);
 
     private final BotRetellingHandler handler = new BotRetellingHandler(
-        tgSender, aiClient, accessChecker, dialogDomainService, starPaymentDomainService);
+        tgSender, aiClient, accessChecker, ytSubtitlesTool, dialogDomainService, starPaymentDomainService);
 
     @Nested
     class HandleRetelling {
@@ -38,10 +40,12 @@ class BotRetellingHandlerUnitTest {
             UUID sessionId = UUID.randomUUID();
             Client client = Client.builder().id(clientId).build();
             String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            String subtitles = "Subtitles text";
 
             when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
             when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
-            when(aiClient.startRetelling(sessionId.toString(), videoUrl)).thenReturn("Retelling text");
+            when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenReturn(subtitles);
+            when(aiClient.startRetelling(sessionId.toString(), videoUrl, subtitles, null)).thenReturn("Retelling text");
 
             handler.handleRetelling(chatId, client, videoUrl);
 
@@ -58,10 +62,12 @@ class BotRetellingHandlerUnitTest {
             UUID sessionId = UUID.randomUUID();
             Client client = Client.builder().id(clientId).build();
             String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            String subtitles = "Subtitles text";
 
             when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_ADMIN);
             when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
-            when(aiClient.startRetelling(sessionId.toString(), videoUrl)).thenReturn("Retelling text");
+            when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenReturn(subtitles);
+            when(aiClient.startRetelling(sessionId.toString(), videoUrl, subtitles, null)).thenReturn("Retelling text");
 
             handler.handleRetelling(chatId, client, videoUrl);
 
@@ -113,6 +119,27 @@ class BotRetellingHandlerUnitTest {
             handler.handleRetelling(chatId, client, "What is the topic?");
 
             verify(tgSender).send(chatId, "Пришлите ссылку на YouTube-видео");
+            verifyNoInteractions(aiClient);
+        }
+
+        @Test
+        void when_handleRetelling_withSubtitlesLoadingFailure_then_closesSessionAndRethrows() {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenThrow(new RuntimeException("Subtitles loading failed"));
+
+            org.junit.jupiter.api.Assertions.assertThrows(
+                RuntimeException.class,
+                () -> handler.handleRetelling(chatId, client, videoUrl)
+            );
+
+            verify(dialogDomainService).closeSession(sessionId);
             verifyNoInteractions(aiClient);
         }
 

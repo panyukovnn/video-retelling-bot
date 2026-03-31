@@ -6,7 +6,7 @@ import jakarta.persistence.PreUpdate;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import static ru.panyukovnn.videoretellingbot.util.Constants.DEFAULT_DB_USER;
 
@@ -15,14 +15,14 @@ import static ru.panyukovnn.videoretellingbot.util.Constants.DEFAULT_DB_USER;
 @MappedSuperclass
 public class AuditableEntity {
 
-    private LocalDateTime createTime;
+    private Instant createTime;
     private String createUser;
-    private LocalDateTime lastUpdateTime;
+    private Instant lastUpdateTime;
     private String lastUpdateUser;
 
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         this.createTime = now;
         this.lastUpdateTime = now;
         this.createUser = DEFAULT_DB_USER;
@@ -31,7 +31,15 @@ public class AuditableEntity {
 
     @PreUpdate
     public void preUpdate() {
-        this.lastUpdateTime = LocalDateTime.now();
+        this.lastUpdateTime = Instant.now();
         this.lastUpdateUser = DEFAULT_DB_USER;
+
+        if (this.createTime == null) {
+            this.createTime = Instant.now();
+        }
+
+        if (this.createUser == null) {
+            this.createUser = DEFAULT_DB_USER;
+        }
     }
 }
