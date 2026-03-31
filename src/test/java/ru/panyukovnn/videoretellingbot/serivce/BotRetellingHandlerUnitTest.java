@@ -11,10 +11,14 @@ import ru.panyukovnn.videoretellingbot.model.DialogSession;
 import ru.panyukovnn.videoretellingbot.serivce.domain.DialogDomainService;
 import ru.panyukovnn.videoretellingbot.serivce.domain.StarPaymentDomainService;
 import ru.panyukovnn.videoretellingbot.tool.YtSubtitlesTool;
+import ru.panyukovnn.videoretellingbot.util.Constants;
 
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -141,6 +145,49 @@ class BotRetellingHandlerUnitTest {
 
             verify(dialogDomainService).closeSession(sessionId);
             verifyNoInteractions(aiClient);
+        }
+
+        @Test
+        void when_handleRetelling_withMultipleLinks_then_warningMessageSent() {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String firstUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            String secondUrl = "https://www.youtube.com/watch?v=Qabcdefg123";
+            String inputMessage = firstUrl + " " + secondUrl;
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, firstUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(firstUrl)).thenReturn("Subtitles");
+            when(aiClient.startRetelling(eq(sessionId.toString()), eq(firstUrl), anyString(), any()))
+                .thenReturn("Retelling");
+
+            handler.handleRetelling(chatId, client, inputMessage);
+
+            verify(tgSender).send(chatId, Constants.MULTIPLE_LINKS_WARNING_MESSAGE);
+        }
+
+        @Test
+        void when_handleRetelling_withMultipleLinks_then_onlyFirstProcessed() {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String firstUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            String secondUrl = "https://www.youtube.com/watch?v=Qabcdefg123";
+            String inputMessage = firstUrl + " " + secondUrl;
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, firstUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(firstUrl)).thenReturn("Subtitles");
+            when(aiClient.startRetelling(eq(sessionId.toString()), eq(firstUrl), anyString(), any()))
+                .thenReturn("Retelling");
+
+            handler.handleRetelling(chatId, client, inputMessage);
+
+            verify(ytSubtitlesTool).loadSubtitles(firstUrl);
+            verify(ytSubtitlesTool, never()).loadSubtitles(secondUrl);
         }
 
         @Test

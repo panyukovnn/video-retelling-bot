@@ -32,7 +32,7 @@
 
 ## 5. Тесты
 
-- [ ] `BotRetellingHandlerTest`:
+- [x] `BotRetellingHandlerTest`:
   - `when_handleRetelling_withMultipleLinks_then_onlyFirstProcessed`
   - `when_handleRetelling_withMultipleLinks_then_warningMessageSent`
 - [ ] Ручная проверка системного промпта (промпт-тест):
