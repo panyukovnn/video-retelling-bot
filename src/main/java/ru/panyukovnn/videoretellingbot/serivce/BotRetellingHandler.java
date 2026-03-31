@@ -8,6 +8,7 @@ import ru.panyukovnn.videoretellingbot.client.AiClient;
 import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.DialogSession;
 import ru.panyukovnn.videoretellingbot.serivce.domain.DialogDomainService;
+import ru.panyukovnn.videoretellingbot.serivce.domain.StarPaymentDomainService;
 import ru.panyukovnn.videoretellingbot.util.YoutubeLinkHelper;
 
 import java.util.Optional;
@@ -22,11 +23,15 @@ public class BotRetellingHandler {
     private static final String MSG_QUESTIONS_WELCOME = "Можете задавать вопросы по содержанию видео";
     private static final String MSG_NO_SESSION = "Пришлите ссылку на YouTube-видео";
     private static final String MSG_CONTEXT_EXCEEDED =
-        "Объём диалога превысил 200 000 токенов — разговор завершён. Пришлите новую ссылку для продолжения";
+        "Объём диалога превысил лимит токенов — разговор завершён. Пришлите новую ссылку для продолжения";
+    static final String MSG_REQUIRES_PAYMENT =
+        "Бесплатный пересказ на сегодня уже использован. Стоимость одного дополнительного пересказа — 1 звезда Telegram";
 
     private final TgSender tgSender;
     private final AiClient aiClient;
+    private final AccessChecker accessChecker;
     private final DialogDomainService dialogDomainService;
+    private final StarPaymentDomainService starPaymentDomainService;
 
     public void handleRetelling(Long chatId, Client client, String inputMessage) {
         if (YoutubeLinkHelper.isValidYoutubeUrl(inputMessage)) {
@@ -37,6 +42,15 @@ public class BotRetellingHandler {
     }
 
     private void handleNewVideo(Long chatId, Client client, String videoUrl) {
+        AccessChecker.AccessResult accessResult = accessChecker.checkAccess(client);
+
+        if (AccessChecker.AccessResult.REQUIRES_PAYMENT == accessResult) {
+            tgSender.send(chatId, MSG_REQUIRES_PAYMENT);
+            starPaymentDomainService.sendInvoice(chatId, videoUrl);
+
+            return;
+        }
+
         UUID sessionId = dialogDomainService.openSession(client, videoUrl);
 
         tgSender.send(chatId, MSG_EXTRACTING);
@@ -46,6 +60,10 @@ public class BotRetellingHandler {
 
             tgSender.send(chatId, retelling);
             tgSender.send(chatId, MSG_QUESTIONS_WELCOME);
+
+            if (AccessChecker.AccessResult.ALLOWED_FREE == accessResult) {
+                accessChecker.incrementDailyUsage(client);
+            }
         } catch (Exception e) {
             dialogDomainService.closeSession(sessionId);
 

@@ -101,12 +101,12 @@
 
 ### 2.7 Интеграция с BotRetellingHandler
 
-- [ ] Перед стартом пересказа:
+- [x] Перед стартом пересказа:
   1. Получить `Client` из БД
   2. Вызвать `AccessChecker.checkAccess(client)`
   3. Если `ALLOWED_FREE` или `ALLOWED_ADMIN` → продолжить, после успешного пересказа инкрементировать `dailyRetellingsUsed`
   4. Если `REQUIRES_PAYMENT` → вызвать `StarPaymentDomainService.sendInvoice()`, прервать текущий флоу
-- [ ] После успешного пересказа (FREE):
+- [x] После успешного пересказа (FREE):
   - Инкрементировать `client.dailyRetellingsUsed`
   - Сохранить через `ClientDomainService`
 

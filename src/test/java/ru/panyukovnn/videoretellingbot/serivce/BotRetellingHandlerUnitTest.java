@@ -92,7 +92,7 @@ class BotRetellingHandlerUnitTest {
 
             verify(dialogDomainService).closeSession(sessionId);
             verify(tgSender).send(chatId,
-                "Объём диалога превысил 200 000 токенов — разговор завершён. Пришлите новую ссылку для продолжения"
+                "Объём диалога превысил лимит токенов — разговор завершён. Пришлите новую ссылку для продолжения"
             );
         }
     }
