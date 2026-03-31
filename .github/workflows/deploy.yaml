@@ -31,35 +31,46 @@ jobs:
 
       - name: Deploy to server
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.NVPN_SSH_PRIVATE_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
-          SSH_USER: ${{ secrets.NVPN_SSH_USER }}
+          SERVER_PORT: ${{ vars.SERVER_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
           IMAGE_TAG: ${{ steps.extract_tag.outputs.tag }}
-          REMOTE_DIR: ${{ needs.get-repo-name.outputs.repo }}
+          REPO_NAME: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GH_PACKAGES_READ_TOKEN }}
+          IMAGE_NAME: ${{ needs.get-repo-name.outputs.repo }}
         run: |
           # Подключаемся к серверу и выполняем скрипт
           echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key ${SSH_USER}@${SERVER_IP} "
-            cd $REMOTE_DIR
-            docker compose down -v
-            APP_TAG=${IMAGE_TAG} docker compose up -d
-          "
+            cd ${IMAGE_NAME}
+            echo '${GH_TOKEN}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            REPO_NAME=${REPO_NAME} IMAGE_NAME=${IMAGE_NAME} PORT=${SERVER_PORT} APP_TAG=${IMAGE_TAG} docker compose down -v
+            REPO_NAME=${REPO_NAME} IMAGE_NAME=${IMAGE_NAME} PORT=${SERVER_PORT} APP_TAG=${IMAGE_TAG} docker compose up -d
+          "  
 
       - name: Health check
         env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_PORT: ${{ vars.SERVER_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          IMAGE_NAME: ${{ needs.get-repo-name.outputs.repo }}
         run: |
           echo "Ожидание готовности приложения..."
+          echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
           for i in {1..12}; do
             echo "Попытка $i из 12..."
-            if curl -s "http://${SERVER_IP}:8082/${{ needs.get-repo-name.outputs.repo }}/actuator/health" | grep -q '"status":"UP"'; then
+            if ssh -o StrictHostKeyChecking=no -i private_key ${SSH_USER}@${SERVER_IP} "curl -s http://localhost:${SERVER_PORT}/${IMAGE_NAME}/actuator/health" | grep -q '"status":"UP"'; then
               echo "✅ Приложение успешно запущено"
+              rm -f private_key
               exit 0
             fi
             echo "Приложение еще не готово, ожидание 10 секунд..."
             sleep 10
           done
           echo "❌ Приложение не запустилось после 2 минут ожидания"
+          rm -f private_key
           exit 1
 
       - name: Notify Telegram on success

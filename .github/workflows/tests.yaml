@@ -1,12 +1,11 @@
-name: Run Gradle Tests
+name: Tests
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - '**'
+    tags-ignore:
+      - '**'
 
 jobs:
   get-repo-name:
@@ -17,52 +16,9 @@ jobs:
       - id: get-name
         run: echo "repo=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)" >> $GITHUB_OUTPUT
 
-  test:
-    needs: get-repo-name
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
-
-      - name: Run tests
-        id: run-tests
-        run: ./gradlew test
-
-      - name: Generate JaCoCo report
-        run: ./gradlew jacocoTestReport
-
-      - name: Verify test coverage
-        id: check-coverage
-        run: ./gradlew jacocoTestCoverageVerification
-        continue-on-error: true # Не блокируем сборку при недостаточном покрытии
-
-      - name: Notify if coverage check failed
-        if: steps.check-coverage.outcome == 'failure'
-        run: |
-          curl -s -X POST https://api.telegram.org/bot${{ secrets.NOTIFICATION_TELEGRAM_BOT_TOKEN }}/sendMessage \
-            -d chat_id=${{ secrets.NOTIFICATION_TELEGRAM_CHAT_ID }} \
-            -d text="⚠️ ${{ needs.get-repo-name.outputs.repo }} %0A Недостаточное тестовое покрытие ${{ github.ref_name }}  %0A Посмотреть лог: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
-      - name: Notify Telegram on success
-        if: success()
-        run: |
-          curl -s -X POST https://api.telegram.org/bot${{ secrets.NOTIFICATION_TELEGRAM_BOT_TOKEN }}/sendMessage \
-            -d chat_id=${{ secrets.NOTIFICATION_TELEGRAM_CHAT_ID }} \
-            -d text="✅ ${{ needs.get-repo-name.outputs.repo }} %0A Успешно отработали тесты для ${{ github.ref_name }}"
-
-      - name: Notify Telegram on failure
-        if: failure()
-        run: |
-          curl -s -X POST https://api.telegram.org/bot${{ secrets.NOTIFICATION_TELEGRAM_BOT_TOKEN }}/sendMessage \
-            -d chat_id=${{ secrets.NOTIFICATION_TELEGRAM_CHAT_ID }} \
-            -d text="❌ ${{ needs.get-repo-name.outputs.repo }} %0A Ошибка при выполнении тестов для ${{ github.ref_name }} %0A Посмотреть лог: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+  tests:
+    uses: ./.github/workflows/reusable-tests.yaml
+    secrets:
+      GH_PACKAGES_READ_TOKEN: ${{ secrets.GH_PACKAGES_READ_TOKEN }}
+      NOTIFICATION_TELEGRAM_BOT_TOKEN: ${{ secrets.NOTIFICATION_TELEGRAM_BOT_TOKEN }}
+      NOTIFICATION_TELEGRAM_CHAT_ID: ${{ secrets.NOTIFICATION_TELEGRAM_CHAT_ID }}

@@ -1,0 +1,70 @@
+name: Reusable Tests
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        required: false
+        type: string
+        default: '21'
+    secrets:
+      GH_PACKAGES_READ_TOKEN:
+        required: true
+      NOTIFICATION_TELEGRAM_BOT_TOKEN:
+        required: true
+      NOTIFICATION_TELEGRAM_CHAT_ID:
+        required: true
+
+jobs:
+  get-repo-name:
+    runs-on: ubuntu-latest
+    outputs:
+      repo: ${{ steps.get-name.outputs.repo }}
+    steps:
+      - id: get-name
+        run: echo "repo=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)" >> $GITHUB_OUTPUT
+
+  test:
+    needs: get-repo-name
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ inputs.java-version }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Run tests
+        id: run-tests
+        env:
+          GITHUB_PACKAGES_READ_TOKEN: ${{ secrets.GH_PACKAGES_READ_TOKEN }}
+        run: ./gradlew test --no-daemon
+
+      - name: Generate JaCoCo report
+        run: ./gradlew jacocoTestReport
+
+      - name: Verify test coverage
+        id: check-coverage
+        run: ./gradlew jacocoTestCoverageVerification
+        continue-on-error: true # Не блокируем сборку при недостаточном покрытии
+
+      - name: Notify if coverage check failed
+        if: steps.check-coverage.outcome == 'failure'
+        run: |
+            curl -s -X POST https://api.telegram.org/bot${{ secrets.NOTIFICATION_TELEGRAM_BOT_TOKEN }}/sendMessage \
+            -d chat_id=${{ secrets.NOTIFICATION_TELEGRAM_CHAT_ID }} \
+            -d text="⚠️ ${{ needs.get-repo-name.outputs.repo }} %0A Недостаточное тестовое покрытие ${{ github.ref_name }}  %0A Посмотреть лог: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      - name: Notify Telegram on failure
+        if: failure()
+        run: |
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.NOTIFICATION_TELEGRAM_BOT_TOKEN }}/sendMessage \
+          -d chat_id=${{ secrets.NOTIFICATION_TELEGRAM_CHAT_ID }} \
+          -d text="❌ ${{ needs.get-repo-name.outputs.repo }} %0A Ошибка при выполнении тестов для ${{ github.ref_name }} %0A Посмотреть лог: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
