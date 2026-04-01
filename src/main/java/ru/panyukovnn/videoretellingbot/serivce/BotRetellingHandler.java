@@ -10,6 +10,7 @@ import ru.panyukovnn.videoretellingbot.client.AiClient;
 import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.DialogSession;
 import ru.panyukovnn.videoretellingbot.serivce.domain.DialogDomainService;
+import ru.panyukovnn.videoretellingbot.property.FeedbackProperties;
 import ru.panyukovnn.videoretellingbot.serivce.domain.StarPaymentDomainService;
 import ru.panyukovnn.videoretellingbot.tool.YtSubtitlesTool;
 import ru.panyukovnn.videoretellingbot.util.Constants;
@@ -38,6 +39,7 @@ public class BotRetellingHandler {
     private final DialogDomainService dialogDomainService;
     private final StarPaymentDomainService starPaymentDomainService;
     private final TypingIndicator typingIndicator;
+    private final FeedbackProperties feedbackProperties;
 
     public void handleRetelling(Long chatId, Client client, String inputMessage) {
         if (YoutubeLinkHelper.isValidYoutubeUrl(inputMessage)) {
@@ -85,10 +87,26 @@ public class BotRetellingHandler {
             if (AccessChecker.AccessResult.ALLOWED_FREE == accessResult) {
                 accessChecker.incrementDailyUsage(client);
             }
+
+            sendFeedbackMessageIfNeeded(chatId, client);
         } catch (Exception e) {
             dialogDomainService.closeSession(sessionId);
 
             throw e;
+        }
+    }
+
+    private void sendFeedbackMessageIfNeeded(Long chatId, Client client) {
+        int showEveryN = feedbackProperties.getShowEveryNRetellings();
+        String formUrl = feedbackProperties.getFormUrl();
+
+        if (showEveryN <= 0 || formUrl == null || formUrl.isBlank()) {
+            return;
+        }
+
+        if (client.getRetellingsCount() % showEveryN == 0) {
+            String feedbackMessage = String.format(Constants.FEEDBACK_MESSAGE_TEMPLATE, formUrl);
+            tgSender.send(chatId, feedbackMessage);
         }
     }
 

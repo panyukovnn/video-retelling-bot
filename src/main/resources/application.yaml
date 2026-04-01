@@ -37,6 +37,9 @@ retelling:
   yt-subtitles-loader-jar-path: "/Users/nikolay/dev/shell-services/yt-subtitles-loader-1.0.0-RC2.jar"
   rest-timeout: 180000
   dialog-context-limit-tokens: 200000
+  feedback:
+    form-url: ${FEEDBACK_FORM_URL:}
+    show-every-n-retellings: 5
 
 telegram:
   bot:
