@@ -1,19 +1,30 @@
-FROM amazoncorretto:17.0.7-alpine AS BUILD_IMAGE
+# Используем официальный образ Gradle с JDK
+FROM gradle:8.14-jdk21 AS build_image
 
-COPY . ./
+# Устанавливаем рабочую директорию
+WORKDIR /app
 
-RUN ./gradlew build
+# Копируем файлы конфигурации для кеширования зависимостей
+COPY build.gradle settings.gradle linters.gradle ./
 
-# ---
+# Копируем исходный код
+COPY src ./src
 
-FROM amazoncorretto:17.0.7-alpine
+# Собираем приложение, используя BuildKit secrets для безопасной передачи токена
+RUN --mount=type=secret,id=gh_token \
+    GITHUB_PACKAGES_READ_TOKEN=$(cat /run/secrets/gh_token) gradle build -x test --no-daemon
 
-COPY --from=BUILD_IMAGE ./build/libs/video-retelling-bot.jar /video-retelling-bot.jar
-COPY ./yt-dlp /yt-dlp
+# Runtime образ
+FROM eclipse-temurin:21-jre
 
-EXPOSE 8008
+# Копируем собранный jar файл
+COPY --from=build_image /app/build/libs/*.jar ./app.jar
+
+# Устанавливаем часовой пояс
 ENV TZ=Europe/Moscow
 
-RUN chmod -R 744 /yt-dlp
+# Открываем порт
+EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "/video-retelling-bot.jar"]
+# Запускаем приложение
+ENTRYPOINT ["java", "-jar", "./app.jar"]

@@ -1,0 +1,66 @@
+apply plugin: 'pmd'
+apply plugin: 'checkstyle'
+apply plugin: 'com.github.spotbugs'
+
+// Checkstyle
+
+checkstyle {
+    toolVersion = '12.2.0'
+    maxWarnings = 0
+    ignoreFailures = false
+    showViolations = true
+}
+
+tasks.named('checkstyleMain') {
+    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+}
+
+tasks.named('checkstyleTest') {
+    configFile = file("${rootDir}/config/checkstyle/checkstyle-test.xml")
+}
+
+tasks.withType(Checkstyle).configureEach {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+// PMD
+
+pmd {
+    toolVersion = '7.19.0'
+    ignoreFailures = false
+    consoleOutput = true
+    ruleSets = []
+}
+
+pmdMain {
+    ruleSetFiles = files("${rootDir}/config/pmd/ruleset.xml")
+}
+
+pmdTest {
+    ruleSetFiles = files("${rootDir}/config/pmd/ruleset-test.xml")
+}
+
+// SpotBugs
+
+spotbugs {
+    toolVersion = '4.8.6'
+    excludeFilter = file('config/spotbugs/exclude.xml')
+    includeFilter = file('config/spotbugs/include.xml')
+}
+
+tasks.register('codeQuality') {
+    dependsOn 'pmdMain', 'pmdTest', 'checkstyleMain', 'checkstyleTest', 'spotbugsMain', 'spotbugsTest'
+    group = 'verification'
+}
+
+// Отключаем автоматический запуск линтеров при сборке приложения, линтеры запускаются через таск codeQuality
+gradle.taskGraph.whenReady { taskGraph ->
+    if (!taskGraph.hasTask(':codeQuality')) {
+        ['checkstyleMain', 'checkstyleTest', 'pmdMain', 'pmdTest', 'spotbugsMain', 'spotbugsTest'].each { name ->
+            tasks.findByName(name)?.enabled = false
+        }
+    }
+}
