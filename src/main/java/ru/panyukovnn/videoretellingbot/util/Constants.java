@@ -19,6 +19,8 @@ public class Constants {
         + "4. Если прислать новую ссылку — контекст предыдущего видео сбрасывается и начинается обсуждение нового";
     public static final String MULTIPLE_LINKS_WARNING_MESSAGE =
         "Обнаружено несколько ссылок — обработана только первая";
+    public static final String FEEDBACK_MESSAGE_TEMPLATE =
+        "Если у вас есть пожелания или жалобы — оставьте отзыв: %s";
     public static final Pattern YOUTUBE_VIDEO_ID_PATTERN = Pattern.compile("^[\\w-]{11}$");
     public static final Pattern YOUTUBE_URL_PATTERN = Pattern.compile(
         "https?://(?:(?:www\\.)?youtube\\.com/(?:watch\\?v=|shorts/|live/)|youtu\\.be/)[\\w-]{11}[^\\s]*"

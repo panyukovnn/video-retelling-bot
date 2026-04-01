@@ -12,6 +12,7 @@ import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.DialogSession;
 import ru.panyukovnn.videoretellingbot.serivce.domain.DialogDomainService;
 import ru.panyukovnn.videoretellingbot.serivce.domain.StarPaymentDomainService;
+import ru.panyukovnn.videoretellingbot.property.FeedbackProperties;
 import ru.panyukovnn.videoretellingbot.tool.YtSubtitlesTool;
 import ru.panyukovnn.videoretellingbot.util.Constants;
 
@@ -34,10 +35,11 @@ class BotRetellingHandlerUnitTest {
     private final DialogDomainService dialogDomainService = mock(DialogDomainService.class);
     private final StarPaymentDomainService starPaymentDomainService = mock(StarPaymentDomainService.class);
     private final TypingIndicator typingIndicator = mock(TypingIndicator.class);
+    private final FeedbackProperties feedbackProperties = mock(FeedbackProperties.class);
 
     private final BotRetellingHandler handler = new BotRetellingHandler(
         tgSender, aiClient, accessChecker, ytSubtitlesTool, dialogDomainService, starPaymentDomainService,
-        typingIndicator);
+        typingIndicator, feedbackProperties);
 
     @Nested
     class HandleRetelling {
@@ -265,6 +267,54 @@ class BotRetellingHandlerUnitTest {
             verify(tgSender).send(chatId,
                 "Объём диалога превысил лимит токенов — разговор завершён. Пришлите новую ссылку для продолжения"
             );
+        }
+
+        @Test
+        void when_handleNewVideo_withRetellingsCountDivisibleByN_then_feedbackMessageSent() {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).retellingsCount(10L).build();
+            String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            String formUrl = "https://forms.google.com/test";
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenReturn("Subtitles");
+            when(tgSender.sendStreaming(chatId)).thenReturn(mock(StreamingMessageUpdater.class));
+            when(aiClient.startRetellingStream(eq(sessionId.toString()), eq(videoUrl), anyString(), any()))
+                .thenReturn(Flux.just("Retelling"));
+            when(feedbackProperties.getShowEveryNRetellings()).thenReturn(5);
+            when(feedbackProperties.getFormUrl()).thenReturn(formUrl);
+
+            handler.handleRetelling(chatId, client, videoUrl);
+
+            String expectedMessage = String.format(Constants.FEEDBACK_MESSAGE_TEMPLATE, formUrl);
+            verify(tgSender).send(chatId, expectedMessage);
+        }
+
+        @Test
+        void when_handleNewVideo_withRetellingsCountNotDivisible_then_feedbackMessageNotSent() {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).retellingsCount(7L).build();
+            String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            String formUrl = "https://forms.google.com/test";
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenReturn("Subtitles");
+            when(tgSender.sendStreaming(chatId)).thenReturn(mock(StreamingMessageUpdater.class));
+            when(aiClient.startRetellingStream(eq(sessionId.toString()), eq(videoUrl), anyString(), any()))
+                .thenReturn(Flux.just("Retelling"));
+            when(feedbackProperties.getShowEveryNRetellings()).thenReturn(5);
+            when(feedbackProperties.getFormUrl()).thenReturn(formUrl);
+
+            handler.handleRetelling(chatId, client, videoUrl);
+
+            String feedbackMessage = String.format(Constants.FEEDBACK_MESSAGE_TEMPLATE, formUrl);
+            verify(tgSender, never()).send(chatId, feedbackMessage);
         }
     }
 }
