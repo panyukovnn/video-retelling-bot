@@ -14,3 +14,4 @@ services:
       - /etc/common-config/config.env
     volumes:
       - ./application-prom.yaml:/application-prom.yaml
+      - ~/shell-services:/shell-services
