@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: "05.alter_clients_add_paid_retellings_remaining.yml"
+      author: "Panyukov NN"
+      changes:
+        - addColumn:
+            tableName: clients
+            columns:
+              - column:
+                  name: paid_retellings_remaining
+                  type: int
+                  remarks: "Количество оставшихся оплаченных пересказов"
+                  defaultValueNumeric: 0

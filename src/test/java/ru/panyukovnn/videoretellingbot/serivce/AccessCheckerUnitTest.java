@@ -14,8 +14,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -61,17 +60,33 @@ class AccessCheckerUnitTest {
         }
 
         @Test
-        void when_checkAccess_withSecondRetellToday_then_returnsRequiresPayment() {
+        void when_checkAccess_withNoPaidRetellings_then_requiresPayment() {
             Client client = Client.builder()
                 .id(UUID.randomUUID())
                 .tgUserId(100L)
                 .dailyRetellingsUsed(1)
                 .dailyRetellingsResetDate(Instant.now())
+                .paidRetellingsRemaining(0)
                 .build();
 
             AccessChecker.AccessResult result = accessChecker.checkAccess(client);
 
             assertEquals(AccessChecker.AccessResult.REQUIRES_PAYMENT, result);
+        }
+
+        @Test
+        void when_checkAccess_withPaidRetellingsAvailable_then_allowedPaid() {
+            Client client = Client.builder()
+                .id(UUID.randomUUID())
+                .tgUserId(100L)
+                .dailyRetellingsUsed(1)
+                .dailyRetellingsResetDate(Instant.now())
+                .paidRetellingsRemaining(10)
+                .build();
+
+            AccessChecker.AccessResult result = accessChecker.checkAccess(client);
+
+            assertEquals(AccessChecker.AccessResult.ALLOWED_PAID, result);
         }
 
         @Test
@@ -130,6 +145,46 @@ class AccessCheckerUnitTest {
                 client.getDailyRetellingsResetDate().atZone(ZoneOffset.UTC).toLocalDate()
             );
             verify(clientRepository).save(client);
+        }
+    }
+
+    @Nested
+    class DecrementPaidRetellings {
+
+        @Test
+        void when_decrementPaidRetellings_withAvailableRetellings_then_decrementsAndSaves() {
+            Client client = Client.builder()
+                .id(UUID.randomUUID())
+                .tgUserId(100L)
+                .paidRetellingsRemaining(10)
+                .build();
+
+            accessChecker.decrementPaidRetellings(client);
+
+            assertEquals(9, client.getPaidRetellingsRemaining());
+            verify(clientRepository).save(client);
+        }
+
+        @Test
+        void when_decrementPaidRetellings_withZeroRemaining_then_exceptionThrown() {
+            Client client = Client.builder()
+                .id(UUID.randomUUID())
+                .tgUserId(100L)
+                .paidRetellingsRemaining(0)
+                .build();
+
+            assertThrows(IllegalStateException.class, () -> accessChecker.decrementPaidRetellings(client));
+        }
+
+        @Test
+        void when_decrementPaidRetellings_withNullRemaining_then_exceptionThrown() {
+            Client client = Client.builder()
+                .id(UUID.randomUUID())
+                .tgUserId(100L)
+                .paidRetellingsRemaining(null)
+                .build();
+
+            assertThrows(IllegalStateException.class, () -> accessChecker.decrementPaidRetellings(client));
         }
     }
 }

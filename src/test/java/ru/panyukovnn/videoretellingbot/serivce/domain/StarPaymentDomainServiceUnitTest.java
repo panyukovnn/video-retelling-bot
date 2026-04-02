@@ -9,6 +9,8 @@ import org.telegram.telegrambots.meta.api.methods.invoices.SendInvoice;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.StarPayment;
+import ru.panyukovnn.videoretellingbot.property.PaymentProperties;
+import ru.panyukovnn.videoretellingbot.repository.ClientRepository;
 import ru.panyukovnn.videoretellingbot.repository.StarPaymentRepository;
 
 import java.util.UUID;
@@ -22,9 +24,21 @@ import static org.mockito.Mockito.*;
 class StarPaymentDomainServiceUnitTest {
 
     private final TelegramClient telegramClient = mock(TelegramClient.class);
+    private final PaymentProperties paymentProperties = createPaymentProperties();
+    private final ClientRepository clientRepository = mock(ClientRepository.class);
     private final StarPaymentRepository starPaymentRepository = mock(StarPaymentRepository.class);
 
-    private final StarPaymentDomainService service = new StarPaymentDomainService(telegramClient, starPaymentRepository);
+    private final StarPaymentDomainService service = new StarPaymentDomainService(
+        telegramClient, paymentProperties, clientRepository, starPaymentRepository
+    );
+
+    private static PaymentProperties createPaymentProperties() {
+        PaymentProperties properties = new PaymentProperties();
+        properties.setStarsPrice(100);
+        properties.setVideosPerPurchase(50);
+
+        return properties;
+    }
 
     @Nested
     class SendInvoiceTest {
@@ -45,7 +59,7 @@ class StarPaymentDomainServiceUnitTest {
             assertEquals(videoUrl, invoice.getPayload());
             assertEquals("", invoice.getProviderToken());
             assertEquals(1, invoice.getPrices().size());
-            assertEquals(1, invoice.getPrices().get(0).getAmount());
+            assertEquals(100, invoice.getPrices().get(0).getAmount());
         }
 
         @Test
@@ -62,7 +76,11 @@ class StarPaymentDomainServiceUnitTest {
         @Test
         void when_confirmPayment_then_savesStarPayment() {
             UUID clientId = UUID.randomUUID();
-            Client client = Client.builder().id(clientId).tgUserId(100L).build();
+            Client client = Client.builder()
+                .id(clientId)
+                .tgUserId(100L)
+                .paidRetellingsRemaining(0)
+                .build();
             String chargeId = "charge_123";
             String videoUrl = "https://www.youtube.com/watch?v=abc";
 
@@ -75,6 +93,36 @@ class StarPaymentDomainServiceUnitTest {
             assertEquals(clientId, saved.getClientId());
             assertEquals(chargeId, saved.getTelegramChargeId());
             assertEquals(videoUrl, saved.getVideoUrl());
+        }
+
+        @Test
+        void when_confirmPayment_then_paidRetellingsIncreasedByPackageSize() {
+            UUID clientId = UUID.randomUUID();
+            Client client = Client.builder()
+                .id(clientId)
+                .tgUserId(100L)
+                .paidRetellingsRemaining(5)
+                .build();
+
+            service.confirmPayment(client, "charge_456", "https://www.youtube.com/watch?v=xyz");
+
+            assertEquals(55, client.getPaidRetellingsRemaining());
+            verify(clientRepository).save(client);
+        }
+
+        @Test
+        void when_confirmPayment_withNullRemaining_then_paidRetellingsSetToPackageSize() {
+            UUID clientId = UUID.randomUUID();
+            Client client = Client.builder()
+                .id(clientId)
+                .tgUserId(100L)
+                .paidRetellingsRemaining(null)
+                .build();
+
+            service.confirmPayment(client, "charge_789", "https://www.youtube.com/watch?v=def");
+
+            assertEquals(50, client.getPaidRetellingsRemaining());
+            verify(clientRepository).save(client);
         }
     }
 }

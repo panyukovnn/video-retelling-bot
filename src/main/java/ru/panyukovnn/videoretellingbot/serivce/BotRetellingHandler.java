@@ -30,7 +30,7 @@ public class BotRetellingHandler {
     private static final String MSG_CONTEXT_EXCEEDED =
         "Объём диалога превысил лимит токенов — разговор завершён. Пришлите новую ссылку для продолжения";
     static final String MSG_REQUIRES_PAYMENT =
-        "Бесплатный пересказ на сегодня уже использован. Стоимость одного дополнительного пересказа — 1 звезда Telegram";
+        "Бесплатный пересказ на сегодня уже использован. Вы можете приобрести пакет из 50 пересказов за 100 звёзд Telegram";
 
     private final TgSender tgSender;
     private final AiClient aiClient;
@@ -86,6 +86,8 @@ public class BotRetellingHandler {
 
             if (AccessChecker.AccessResult.ALLOWED_FREE == accessResult) {
                 accessChecker.incrementDailyUsage(client);
+            } else if (AccessChecker.AccessResult.ALLOWED_PAID == accessResult) {
+                accessChecker.decrementPaidRetellings(client);
             }
 
             sendFeedbackMessageIfNeeded(chatId, client);

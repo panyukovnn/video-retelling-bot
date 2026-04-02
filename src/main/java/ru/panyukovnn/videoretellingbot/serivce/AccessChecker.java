@@ -30,6 +30,12 @@ public class AccessChecker {
             return AccessResult.ALLOWED_FREE;
         }
 
+        Integer paidRemaining = client.getPaidRetellingsRemaining();
+
+        if (paidRemaining != null && paidRemaining > 0) {
+            return AccessResult.ALLOWED_PAID;
+        }
+
         return AccessResult.REQUIRES_PAYMENT;
     }
 
@@ -40,6 +46,22 @@ public class AccessChecker {
         int currentUsed = client.getDailyRetellingsUsed() == null ? 0 : client.getDailyRetellingsUsed();
         client.setDailyRetellingsUsed(currentUsed + 1);
         client.setDailyRetellingsResetDate(Instant.now());
+        clientRepository.save(client);
+    }
+
+    /**
+     * Списывает один оплаченный пересказ после успешного выполнения
+     */
+    public void decrementPaidRetellings(Client client) {
+        Integer remaining = client.getPaidRetellingsRemaining();
+
+        if (remaining == null || remaining <= 0) {
+            throw new IllegalStateException(
+                "Невозможно списать оплаченный пересказ, остаток равен нулю, clientId: " + client.getId()
+            );
+        }
+
+        client.setPaidRetellingsRemaining(remaining - 1);
         clientRepository.save(client);
     }
 
@@ -56,6 +78,7 @@ public class AccessChecker {
 
     public enum AccessResult {
         ALLOWED_FREE,
+        ALLOWED_PAID,
         ALLOWED_ADMIN,
         REQUIRES_PAYMENT
     }

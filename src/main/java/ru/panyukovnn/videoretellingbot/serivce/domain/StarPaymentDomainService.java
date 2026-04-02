@@ -8,35 +8,40 @@ import org.telegram.telegrambots.meta.api.objects.payments.LabeledPrice;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.StarPayment;
+import ru.panyukovnn.videoretellingbot.property.PaymentProperties;
+import ru.panyukovnn.videoretellingbot.repository.ClientRepository;
 import ru.panyukovnn.videoretellingbot.repository.StarPaymentRepository;
-
-import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class StarPaymentDomainService {
 
-    private static final String INVOICE_TITLE = "Пересказ видео";
-    private static final String INVOICE_DESCRIPTION = "Оплата одного дополнительного пересказа видео";
+    private static final String INVOICE_TITLE = "Пакет пересказов видео";
+    private static final String INVOICE_DESCRIPTION_TEMPLATE = "Оплата %d дополнительных пересказов видео";
     private static final String CURRENCY_XTR = "XTR";
-    private static final int STAR_PRICE = 1;
 
     private final TelegramClient telegramClient;
+    private final PaymentProperties paymentProperties;
+    private final ClientRepository clientRepository;
     private final StarPaymentRepository starPaymentRepository;
 
     /**
      * Отправляет инвойс на оплату пересказа через Telegram Stars
      */
     public void sendInvoice(long chatId, String videoUrl) {
+        String description = String.format(
+            INVOICE_DESCRIPTION_TEMPLATE, paymentProperties.getVideosPerPurchase()
+        );
+
         SendInvoice sendInvoice = SendInvoice.builder()
             .chatId(chatId)
             .title(INVOICE_TITLE)
-            .description(INVOICE_DESCRIPTION)
+            .description(description)
             .payload(videoUrl)
             .providerToken("")
             .currency(CURRENCY_XTR)
-            .price(new LabeledPrice(INVOICE_TITLE, STAR_PRICE))
+            .price(new LabeledPrice(INVOICE_TITLE, paymentProperties.getStarsPrice()))
             .build();
 
         try {
@@ -50,7 +55,7 @@ public class StarPaymentDomainService {
     }
 
     /**
-     * Подтверждает платёж и сохраняет запись о нём
+     * Подтверждает платёж, сохраняет запись и начисляет пакет оплаченных пересказов
      */
     public void confirmPayment(Client client, String chargeId, String videoUrl) {
         StarPayment payment = StarPayment.builder()
@@ -60,6 +65,13 @@ public class StarPaymentDomainService {
             .build();
 
         starPaymentRepository.save(payment);
-        log.info("Платёж подтверждён, chargeId: {}, clientId: {}", chargeId, client.getId());
+
+        int currentRemaining = client.getPaidRetellingsRemaining() == null
+            ? 0 : client.getPaidRetellingsRemaining();
+        client.setPaidRetellingsRemaining(currentRemaining + paymentProperties.getVideosPerPurchase());
+        clientRepository.save(client);
+
+        log.info("Платёж подтверждён, chargeId: {}, clientId: {}, начислено {} пересказов",
+            chargeId, client.getId(), paymentProperties.getVideosPerPurchase());
     }
 }

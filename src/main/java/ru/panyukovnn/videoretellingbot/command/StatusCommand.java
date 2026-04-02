@@ -19,9 +19,11 @@ public class StatusCommand {
     public static final String COMMAND = "/status";
     static final String MSG_ADMIN_STATUS = "Вы администратор — пересказы бесплатны без ограничений";
     static final String MSG_USER_FREE_AVAILABLE =
-        "Бесплатный пересказ на сегодня: доступен. Стоимость дополнительного пересказа — 1 звезда";
+        "Бесплатный пересказ на сегодня: доступен";
     static final String MSG_USER_FREE_USED =
-        "Бесплатный пересказ на сегодня: использован. Стоимость дополнительного пересказа — 1 звезда";
+        "Бесплатный пересказ на сегодня: использован";
+    static final String MSG_PAID_RETELLINGS_REMAINING = "\nОплаченных пересказов осталось: %d";
+    static final String MSG_PURCHASE_HINT = "\nВы можете приобрести пакет из 50 пересказов за 100 звёзд Telegram";
 
     private final TgSender tgSender;
     private final AdminProperties adminProperties;
@@ -42,15 +44,29 @@ public class StatusCommand {
         Optional<Client> clientOpt = clientRepository.findByTgUserId(userId);
 
         if (clientOpt.isEmpty()) {
-            return MSG_USER_FREE_AVAILABLE;
+            return MSG_USER_FREE_AVAILABLE + MSG_PURCHASE_HINT;
         }
 
-        AccessChecker.AccessResult accessResult = accessChecker.checkAccess(clientOpt.get());
+        Client client = clientOpt.get();
+        AccessChecker.AccessResult accessResult = accessChecker.checkAccess(client);
+        StringBuilder message = new StringBuilder();
 
-        if (AccessChecker.AccessResult.REQUIRES_PAYMENT == accessResult) {
-            return MSG_USER_FREE_USED;
+        if (AccessChecker.AccessResult.REQUIRES_PAYMENT == accessResult
+                || AccessChecker.AccessResult.ALLOWED_PAID == accessResult) {
+            message.append(MSG_USER_FREE_USED);
+        } else {
+            message.append(MSG_USER_FREE_AVAILABLE);
         }
 
-        return MSG_USER_FREE_AVAILABLE;
+        int paidRemaining = client.getPaidRetellingsRemaining() == null
+            ? 0 : client.getPaidRetellingsRemaining();
+
+        if (paidRemaining > 0) {
+            message.append(String.format(MSG_PAID_RETELLINGS_REMAINING, paidRemaining));
+        } else {
+            message.append(MSG_PURCHASE_HINT);
+        }
+
+        return message.toString();
     }
 }
