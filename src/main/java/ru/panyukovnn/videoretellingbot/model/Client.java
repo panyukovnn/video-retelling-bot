@@ -51,6 +51,10 @@ public class Client extends AuditableEntity {
      * Дата последнего сброса счётчика бесплатных пересказов
      */
     private Instant dailyRetellingsResetDate;
+    /**
+     * Количество оставшихся оплаченных пересказов
+     */
+    private Integer paidRetellingsRemaining;
 
     @Override
     public boolean equals(Object o) {

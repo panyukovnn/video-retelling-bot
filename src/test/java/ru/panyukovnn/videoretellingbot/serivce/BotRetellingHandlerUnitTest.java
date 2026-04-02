@@ -270,7 +270,7 @@ class BotRetellingHandlerUnitTest {
         }
 
         @Test
-        void when_handleNewVideo_withRetellingsCountDivisibleByN_then_feedbackMessageSent() {
+        void when_handleNewVideo_withRetellingsCountDivisibleByN_then_feedbackMessageSent() throws Exception {
             Long chatId = 100L;
             UUID clientId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -294,7 +294,7 @@ class BotRetellingHandlerUnitTest {
         }
 
         @Test
-        void when_handleNewVideo_withRetellingsCountNotDivisible_then_feedbackMessageNotSent() {
+        void when_handleNewVideo_withRetellingsCountNotDivisible_then_feedbackMessageNotSent() throws Exception {
             Long chatId = 100L;
             UUID clientId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();

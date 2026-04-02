@@ -17,3 +17,6 @@ databaseChangeLog:
   - include:
       file: 04.create_star_payment.yml
       relativeToChangelogFile: true
+  - include:
+      file: 05.alter_clients_add_paid_retellings_remaining.yml
+      relativeToChangelogFile: true
