@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.panyukovnn.longpollingtgbotstarter.service.StreamingMessageUpdater;
 import ru.panyukovnn.longpollingtgbotstarter.service.TgSender;
+import ru.panyukovnn.longpollingtgbotstarter.service.TypingIndicator;
 import ru.panyukovnn.videoretellingbot.client.AiClient;
 import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.DialogSession;

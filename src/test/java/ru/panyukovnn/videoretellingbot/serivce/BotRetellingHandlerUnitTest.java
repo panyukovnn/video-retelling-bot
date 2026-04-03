@@ -7,6 +7,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import ru.panyukovnn.longpollingtgbotstarter.service.StreamingMessageUpdater;
 import ru.panyukovnn.longpollingtgbotstarter.service.TgSender;
+import ru.panyukovnn.longpollingtgbotstarter.service.TypingIndicator;
 import ru.panyukovnn.videoretellingbot.client.AiClient;
 import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.DialogSession;
