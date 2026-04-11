@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: release/1.2.0
+      author: "Panyukov NN"
+      changes:
+        - tagDatabase:
+            tag: release/1.2.0
+  - include:
+      file: 01.alter_clients_add_token_balance.yml
+      relativeToChangelogFile: true
+  - include:
+      file: 02.create_token_usage.yml
+      relativeToChangelogFile: true
+  - include:
+      file: 03.alter_star_payment_add_tokens_granted.yml
+      relativeToChangelogFile: true

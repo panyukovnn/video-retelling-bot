@@ -30,6 +30,10 @@ public class StarPayment extends AuditableEntity {
      * URL видео, за пересказ которого произведена оплата
      */
     private String videoUrl;
+    /**
+     * Фактически начисленный объём токенов за этот платёж
+     */
+    private Integer tokensGranted;
 
     @Override
     public boolean equals(Object o) {

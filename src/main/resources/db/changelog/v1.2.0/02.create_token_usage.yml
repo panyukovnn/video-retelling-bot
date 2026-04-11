@@ -1,0 +1,73 @@
+databaseChangeLog:
+  - changeSet:
+      id: "02.create_token_usage.yml"
+      author: "Panyukov NN"
+      changes:
+        - createTable:
+            tableName: token_usage
+            remarks: "Запись о списании токенов за ответ модели"
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: client_id
+                  type: uuid
+                  remarks: "Идентификатор клиента"
+              - column:
+                  name: dialog_session_id
+                  type: uuid
+                  remarks: "Идентификатор сессии диалога, если списание произошло в рамках диалога"
+              - column:
+                  name: cache_hit_input_tokens
+                  type: int
+                  remarks: "Количество входных токенов, попавших в кэш DeepSeek"
+                  defaultValueNumeric: 0
+              - column:
+                  name: cache_miss_input_tokens
+                  type: int
+                  remarks: "Количество входных токенов с промахом кэша DeepSeek"
+                  defaultValueNumeric: 0
+              - column:
+                  name: output_tokens
+                  type: int
+                  remarks: "Количество выходных токенов, полученных от DeepSeek"
+                  defaultValueNumeric: 0
+              - column:
+                  name: charged_tokens
+                  type: bigint
+                  remarks: "Итоговое количество списанных токенов с учётом весов приведения к output-эквиваленту"
+                  defaultValueNumeric: 0
+              - column:
+                  name: kind
+                  type: varchar
+                  remarks: "Категория события списания (RETELLING или DIALOG_QUESTION)"
+
+              - column:
+                  name: create_time
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+                  remarks: "Время создания"
+              - column:
+                  name: create_user
+                  type: varchar
+                  remarks: "Пользователь, создавший запись"
+              - column:
+                  name: last_update_time
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+                  remarks: "Время обновления"
+              - column:
+                  name: last_update_user
+                  type: varchar
+                  remarks: "Пользователь, изменивший запись"
+        - createIndex:
+            tableName: token_usage
+            indexName: idx_token_usage_client_id_create_time
+            columns:
+              - column:
+                  name: client_id
+              - column:
+                  name: create_time
