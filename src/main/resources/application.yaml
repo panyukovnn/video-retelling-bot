@@ -30,6 +30,7 @@ spring:
           model: deepseek-chat
           temperature: 0.0
           max-tokens: 8000 # Токенов специально немного меньше максимума
+          stream-usage: true # Включаем stream_options.include_usage, чтобы usage приходил в последнем чанке стрима
 
 retelling:
   admin:
@@ -40,7 +41,18 @@ retelling:
   token-safety-margin: 512
   payment:
     stars-price: 100
-    videos-per-purchase: 50
+    videos-per-purchase: 50 # Устаревшее, используется только для обратной совместимости со старой моделью оплаты
+    tokens-per-purchase: 500000
+    welcome-bonus-tokens: 300000
+    min-token-reserve: 0
+    cached-input-weight: 0.064
+    input-weight: 0.245
+    output-weight: 1.0
+    deepseek-cache-hit-price-per-m-tokens: 0.07
+    deepseek-cache-miss-price-per-m-tokens: 0.27
+    deepseek-output-price-per-m-tokens: 1.10
+    star-usd-rate: 0.013
+    markup-min-threshold: 1.5
   feedback:
     form-url: ${FEEDBACK_FORM_URL:}
     show-every-n-retellings: 5
