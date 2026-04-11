@@ -4,11 +4,15 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import ru.panyukovnn.longpollingtgbotstarter.service.StreamingMessageUpdater;
 import ru.panyukovnn.longpollingtgbotstarter.service.TgSender;
 import ru.panyukovnn.longpollingtgbotstarter.service.TypingIndicator;
 import ru.panyukovnn.videoretellingbot.client.AiClient;
+import ru.panyukovnn.videoretellingbot.exception.SubtitlesTooLongException;
 import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.DialogSession;
 import ru.panyukovnn.videoretellingbot.serivce.domain.DialogDomainService;
@@ -268,6 +272,77 @@ class BotRetellingHandlerUnitTest {
             verify(tgSender).send(chatId,
                 "Объём диалога превысил лимит токенов — разговор завершён. Пришлите новую ссылку для продолжения"
             );
+        }
+
+        @Test
+        void when_handleNewVideo_withSubtitlesTooLongException_then_sendsVideoTooLongMessage() throws Exception {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenReturn("Subtitles");
+            when(tgSender.sendStreaming(chatId)).thenReturn(mock(StreamingMessageUpdater.class));
+            when(aiClient.startRetellingStream(eq(sessionId.toString()), eq(videoUrl), anyString(), any()))
+                .thenThrow(new SubtitlesTooLongException(100_000, 55_000));
+
+            handler.handleRetelling(chatId, client, videoUrl);
+
+            verify(tgSender).send(chatId, BotRetellingHandler.MSG_VIDEO_TOO_LONG);
+            verify(dialogDomainService).closeSession(sessionId);
+            verify(accessChecker, never()).incrementDailyUsage(any());
+            verify(accessChecker, never()).decrementPaidRetellings(any());
+        }
+
+        @Test
+        void when_handleNewVideo_withBadRequestFromApi_then_sendsVideoTooLongMessage() throws Exception {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            WebClientResponseException badRequest = WebClientResponseException.create(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                HttpHeaders.EMPTY,
+                new byte[0],
+                null
+            );
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenReturn("Subtitles");
+            when(tgSender.sendStreaming(chatId)).thenReturn(mock(StreamingMessageUpdater.class));
+            when(aiClient.startRetellingStream(eq(sessionId.toString()), eq(videoUrl), anyString(), any()))
+                .thenReturn(Flux.error(badRequest));
+
+            handler.handleRetelling(chatId, client, videoUrl);
+
+            verify(tgSender).send(chatId, BotRetellingHandler.MSG_VIDEO_TOO_LONG);
+            verify(dialogDomainService).closeSession(sessionId);
+            verify(accessChecker, never()).incrementDailyUsage(any());
+        }
+
+        @Test
+        void when_handleUserQuestion_withSubtitlesTooLongException_then_sendsVideoTooLongMessage() throws Exception {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            DialogSession activeSession = DialogSession.builder().id(sessionId).build();
+
+            when(dialogDomainService.findActiveSession(clientId)).thenReturn(Optional.of(activeSession));
+            when(tgSender.sendStreaming(chatId)).thenReturn(mock(StreamingMessageUpdater.class));
+            when(aiClient.continueDialogStream(sessionId.toString(), "Huge question"))
+                .thenThrow(new SubtitlesTooLongException(100_000, 55_000));
+
+            handler.handleRetelling(chatId, client, "Huge question");
+
+            verify(dialogDomainService).closeSession(sessionId);
+            verify(tgSender).send(chatId, BotRetellingHandler.MSG_VIDEO_TOO_LONG);
         }
 
         @Test

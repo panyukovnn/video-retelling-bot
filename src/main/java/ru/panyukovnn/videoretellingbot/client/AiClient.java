@@ -1,17 +1,19 @@
 package ru.panyukovnn.videoretellingbot.client;
 
 import jakarta.annotation.Nullable;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.tokenizer.TokenCountEstimator;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import ru.panyukovnn.videoretellingbot.exception.SubtitlesTooLongException;
+import ru.panyukovnn.videoretellingbot.property.RetellingProperties;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class AiClient {
 
     private static final String YOUTUBE_RETELLING_PROMPT = """
@@ -34,6 +36,22 @@ public class AiClient {
 
     private final ChatClient chatClient;
     private final MessageWindowChatMemory messageWindowChatMemory;
+    private final TokenCountEstimator tokenCountEstimator;
+    private final RetellingProperties retellingProperties;
+    private final int maxOutputTokens;
+
+    public AiClient(
+            ChatClient chatClient,
+            MessageWindowChatMemory messageWindowChatMemory,
+            TokenCountEstimator tokenCountEstimator,
+            RetellingProperties retellingProperties,
+            @Value("${spring.ai.openai.chat.options.max-tokens}") int maxOutputTokens) {
+        this.chatClient = chatClient;
+        this.messageWindowChatMemory = messageWindowChatMemory;
+        this.tokenCountEstimator = tokenCountEstimator;
+        this.retellingProperties = retellingProperties;
+        this.maxOutputTokens = maxOutputTokens;
+    }
 
     /**
      * Начинает диалог с пересказом видео, возвращая стрим токенов ответа.
@@ -51,6 +69,8 @@ public class AiClient {
         String userMessage = userInstruction == null
             ? subtitlesContext
             : subtitlesContext + "\n\n" + userInstruction;
+
+        checkInputTokensAmount(YOUTUBE_RETELLING_PROMPT, userMessage);
 
         return chatClient.prompt()
             .system(YOUTUBE_RETELLING_PROMPT)
@@ -70,6 +90,8 @@ public class AiClient {
     public Flux<String> continueDialogStream(String conversationId, String userMessage) {
         log.info("Продолжаю диалог. conversationId: {}", conversationId);
 
+        checkInputTokensAmount("", userMessage);
+
         return chatClient.prompt()
             .user(userMessage)
             .advisors(
@@ -79,5 +101,24 @@ public class AiClient {
             )
             .stream()
             .content();
+    }
+
+    /**
+     * Проверяет, что размер входа в токенах укладывается в бюджет модели.
+     * Бюджет = полный контекст − max-tokens на ответ − запас на расхождения токенизаторов.
+     * История диалога не учитывается: она ограничивается окном MessageWindowChatMemory
+     * и не может вырасти настолько, чтобы одиночно переполнить контекст.
+     */
+    private void checkInputTokensAmount(String systemPrompt, String userMessage) {
+        int maxInputBudget = retellingProperties.getDialogContextLimitTokens()
+            - maxOutputTokens
+            - retellingProperties.getTokenSafetyMargin();
+        int inputTokens = tokenCountEstimator.estimate(systemPrompt) + tokenCountEstimator.estimate(userMessage);
+
+        if (inputTokens > maxInputBudget) {
+            log.warn("Входной промпт превышает бюджет токенов: {} > {}", inputTokens, maxInputBudget);
+
+            throw new SubtitlesTooLongException(inputTokens, maxInputBudget);
+        }
     }
 }

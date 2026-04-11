@@ -36,7 +36,8 @@ retelling:
     user-ids: [ 368837634 ]
   yt-subtitles-loader-jar-path: "/Users/nikolay/dev/shell-services/yt-subtitles-loader-1.0.0-RC2.jar"
   rest-timeout: 180000
-  dialog-context-limit-tokens: 200000
+  dialog-context-limit-tokens: 64000
+  token-safety-margin: 512
   payment:
     stars-price: 100
     videos-per-purchase: 50

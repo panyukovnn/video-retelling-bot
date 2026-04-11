@@ -4,10 +4,12 @@ import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import ru.panyukovnn.longpollingtgbotstarter.service.StreamingMessageUpdater;
 import ru.panyukovnn.longpollingtgbotstarter.service.TgSender;
 import ru.panyukovnn.longpollingtgbotstarter.service.TypingIndicator;
 import ru.panyukovnn.videoretellingbot.client.AiClient;
+import ru.panyukovnn.videoretellingbot.exception.SubtitlesTooLongException;
 import ru.panyukovnn.videoretellingbot.model.Client;
 import ru.panyukovnn.videoretellingbot.model.DialogSession;
 import ru.panyukovnn.videoretellingbot.serivce.domain.DialogDomainService;
@@ -30,6 +32,8 @@ public class BotRetellingHandler {
     private static final String MSG_NO_SESSION = "Пришлите ссылку на YouTube-видео";
     private static final String MSG_CONTEXT_EXCEEDED =
         "Объём диалога превысил лимит токенов — разговор завершён. Пришлите новую ссылку для продолжения";
+    static final String MSG_VIDEO_TOO_LONG =
+        "Видео слишком длинное — объём субтитров превышает лимит модели. Попробуйте видео покороче";
     static final String MSG_REQUIRES_PAYMENT =
         "Бесплатный пересказ на сегодня уже использован. Вы можете приобрести пакет из 50 пересказов за 100 звёзд Telegram";
 
@@ -92,6 +96,16 @@ public class BotRetellingHandler {
             }
 
             sendFeedbackMessageIfNeeded(chatId, client);
+        } catch (SubtitlesTooLongException e) {
+            log.warn("Субтитры видео превышают бюджет токенов. chatId: {}, videoUrl: {}", chatId, videoUrl, e);
+
+            dialogDomainService.closeSession(sessionId);
+            tgSender.send(chatId, MSG_VIDEO_TOO_LONG);
+        } catch (WebClientResponseException.BadRequest e) {
+            log.warn("DeepSeek отклонил запрос как слишком длинный. chatId: {}, videoUrl: {}", chatId, videoUrl, e);
+
+            dialogDomainService.closeSession(sessionId);
+            tgSender.send(chatId, MSG_VIDEO_TOO_LONG);
         } catch (Exception e) {
             dialogDomainService.closeSession(sessionId);
 
@@ -163,6 +177,11 @@ public class BotRetellingHandler {
                 .doOnNext(updater::appendToken)
                 .doOnTerminate(updater::complete)
                 .blockLast();
+        } catch (SubtitlesTooLongException | WebClientResponseException.BadRequest tooLongException) {
+            log.warn("Сообщение пользователя превышает бюджет токенов. sessionId: {}", sessionId, tooLongException);
+
+            dialogDomainService.closeSession(sessionId);
+            tgSender.send(chatId, MSG_VIDEO_TOO_LONG);
         } catch (Exception contextException) {
             log.warn("Превышен лимит контекста диалога. sessionId: {}", sessionId, contextException);
 

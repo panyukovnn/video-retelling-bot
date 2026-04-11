@@ -11,5 +11,12 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "retelling")
 public class RetellingProperties {
 
-    private long dialogContextLimitTokens;
+    /**
+     * Полный контекст модели (вход + выход), за вычетом которого рассчитывается бюджет токенов на входные сообщения
+     */
+    private int dialogContextLimitTokens;
+    /**
+     * Запас токенов на расхождения между локальным токенизатором и токенизатором модели, системные служебные токены
+     */
+    private int tokenSafetyMargin;
 }

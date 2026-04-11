@@ -5,6 +5,8 @@ import org.springframework.ai.chat.client.advisor.ChatModelCallAdvisor;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.tokenizer.JTokkitTokenCountEstimator;
+import org.springframework.ai.tokenizer.TokenCountEstimator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,5 +29,10 @@ public class ChatClientConfig {
                     .build()
             )
             .build();
+    }
+
+    @Bean
+    public TokenCountEstimator tokenCountEstimator() {
+        return new JTokkitTokenCountEstimator();
     }
 }
