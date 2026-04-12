@@ -90,7 +90,7 @@ charged = round(cacheHit * 0.064 + cacheMiss * 0.245 + output * 1.000)
 
 ### 2. Доменная модель и БД
 
-- [ ] В `Client` добавить поля:
+- [x] В `Client` добавить поля:
     - `tokenBalance` (Long, NOT NULL, default 0)
     - `welcomeBonusGranted` (Boolean, NOT NULL, default false) — признак выданного приветственного бонуса
     - `totalTokensCharged` (Long) — сумма списанных (взвешенных) токенов за всё время
@@ -98,8 +98,8 @@ charged = round(cacheHit * 0.064 + cacheMiss * 0.245 + output * 1.000)
     - `totalCacheMissInputTokens` (Long)
     - `totalOutputTokens` (Long)
     - `version` (Long, `@Version`) — оптимистическая блокировка при конкурентных списаниях
-- [ ] В `Client` пометить Deprecated (в Javadoc) старые поля: `dailyRetellingsUsed`, `dailyRetellingsResetDate`, `paidRetellingsRemaining`. Геттеры остаются (для истории), в новом коде не используются.
-- [ ] Новая entity `TokenUsage` (таблица `token_usage`):
+- [x] В `Client` пометить Deprecated (в Javadoc) старые поля: `dailyRetellingsUsed`, `dailyRetellingsResetDate`, `paidRetellingsRemaining`. Геттеры остаются (для истории), в новом коде не используются.
+- [x] Новая entity `TokenUsage` (таблица `token_usage`):
     - `id` UUID
     - `client_id` UUID
     - `dialog_session_id` UUID (nullable)
@@ -109,12 +109,12 @@ charged = round(cacheHit * 0.064 + cacheMiss * 0.245 + output * 1.000)
     - `charged_tokens` long — итого списано (с учётом весов)
     - `kind` enum (`RETELLING` / `DIALOG_QUESTION`)
     - `created_at` timestamp
-- [ ] В `StarPayment` добавить поле `tokens_granted` (int) — фактически начисленный объём.
-- [ ] Liquibase `v1.2.0`:
-    - [ ] `01.alter_clients_add_token_balance.yml` — колонки `token_balance`, `welcome_bonus_granted`, агрегаты, `version`
-    - [ ] `02.create_token_usage.yml` (+ индекс `idx_token_usage_client_id_created_at`)
-    - [ ] `03.alter_star_payment_add_tokens_granted.yml`
-- [ ] Repository `TokenUsageRepository`.
+- [x] В `StarPayment` добавить поле `tokens_granted` (int) — фактически начисленный объём.
+- [x] Liquibase `v1.2.0`:
+    - [x] `01.alter_clients_add_token_balance.yml` — колонки `token_balance`, `welcome_bonus_granted`, агрегаты, `version`
+    - [x] `02.create_token_usage.yml` (+ индекс `idx_token_usage_client_id_created_at`)
+    - [x] `03.alter_star_payment_add_tokens_granted.yml`
+- [x] Repository `TokenUsageRepository`.
 
 ### 3. Захват usage из Spring AI
 

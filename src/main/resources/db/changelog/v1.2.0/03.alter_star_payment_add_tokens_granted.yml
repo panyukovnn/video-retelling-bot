@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: "03.alter_star_payment_add_tokens_granted.yml"
+      author: "Panyukov NN"
+      changes:
+        - addColumn:
+            tableName: star_payment
+            columns:
+              - column:
+                  name: tokens_granted
+                  type: int
+                  remarks: "Фактически начисленный объём токенов за этот платёж"
+                  defaultValueNumeric: 0

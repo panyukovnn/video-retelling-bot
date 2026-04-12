@@ -42,7 +42,7 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-validation"
 
-    implementation 'ru.panyukovnn:long-polling-tg-bot-starter:2.0.0-RC4'
+    implementation 'ru.panyukovnn:long-polling-tg-bot-starter:2.0.0-RC5'
     implementation 'ru.panyukovnn:reference-logging-starter:1.0.0'
 
     implementation platform('org.springframework.ai:spring-ai-bom:1.1.0')

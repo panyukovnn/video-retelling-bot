@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: "01.alter_clients_add_token_balance.yml"
+      author: "Panyukov NN"
+      changes:
+        - addColumn:
+            tableName: clients
+            columns:
+              - column:
+                  name: token_balance
+                  type: bigint
+                  remarks: "Текущий остаток токенов на балансе клиента"
+                  defaultValueNumeric: 0
+              - column:
+                  name: welcome_bonus_granted
+                  type: boolean
+                  remarks: "Признак того, что клиенту уже был начислен приветственный бонус токенов"
+                  defaultValueBoolean: false
+              - column:
+                  name: total_tokens_charged
+                  type: bigint
+                  remarks: "Суммарно списано с клиента токенов с учётом весов приведения к output-эквиваленту"
+                  defaultValueNumeric: 0
+              - column:
+                  name: total_cache_hit_input_tokens
+                  type: bigint
+                  remarks: "Суммарное количество входных токенов клиента, попавших в кэш DeepSeek"
+                  defaultValueNumeric: 0
+              - column:
+                  name: total_cache_miss_input_tokens
+                  type: bigint
+                  remarks: "Суммарное количество входных токенов клиента с промахом кэша DeepSeek"
+                  defaultValueNumeric: 0
+              - column:
+                  name: total_output_tokens
+                  type: bigint
+                  remarks: "Суммарное количество выходных токенов клиента, полученных от DeepSeek"
+                  defaultValueNumeric: 0
+              - column:
+                  name: version
+                  type: bigint
+                  remarks: "Поле оптимистической блокировки при параллельных списаниях"
+                  defaultValueNumeric: 0

@@ -346,6 +346,46 @@ class BotRetellingHandlerUnitTest {
         }
 
         @Test
+        void when_handleNewVideo_withSubtitlesTooLongException_then_completesStreamingUpdater() throws Exception {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            String videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            StreamingMessageUpdater updater = mock(StreamingMessageUpdater.class);
+
+            when(accessChecker.checkAccess(client)).thenReturn(AccessChecker.AccessResult.ALLOWED_FREE);
+            when(dialogDomainService.openSession(client, videoUrl)).thenReturn(sessionId);
+            when(ytSubtitlesTool.loadSubtitles(videoUrl)).thenReturn("Subtitles");
+            when(tgSender.sendStreaming(chatId)).thenReturn(updater);
+            when(aiClient.startRetellingStream(eq(sessionId.toString()), eq(videoUrl), anyString(), any()))
+                .thenThrow(new SubtitlesTooLongException(100_000, 55_000));
+
+            handler.handleRetelling(chatId, client, videoUrl);
+
+            verify(updater).complete();
+        }
+
+        @Test
+        void when_handleUserQuestion_withSubtitlesTooLongException_then_completesStreamingUpdater() throws Exception {
+            Long chatId = 100L;
+            UUID clientId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            Client client = Client.builder().id(clientId).build();
+            DialogSession activeSession = DialogSession.builder().id(sessionId).build();
+            StreamingMessageUpdater updater = mock(StreamingMessageUpdater.class);
+
+            when(dialogDomainService.findActiveSession(clientId)).thenReturn(Optional.of(activeSession));
+            when(tgSender.sendStreaming(chatId)).thenReturn(updater);
+            when(aiClient.continueDialogStream(sessionId.toString(), "Huge question"))
+                .thenThrow(new SubtitlesTooLongException(100_000, 55_000));
+
+            handler.handleRetelling(chatId, client, "Huge question");
+
+            verify(updater).complete();
+        }
+
+        @Test
         void when_handleNewVideo_withRetellingsCountDivisibleByN_then_feedbackMessageSent() throws Exception {
             Long chatId = 100L;
             UUID clientId = UUID.randomUUID();
