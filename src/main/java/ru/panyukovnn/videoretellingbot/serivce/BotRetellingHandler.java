@@ -145,10 +145,15 @@ public class BotRetellingHandler {
             @Nullable String userInstruction) {
         StreamingMessageUpdater updater = startStreamingMessage(chatId);
 
-        aiClient.startRetellingStream(sessionId, videoUrl, subtitles, userInstruction)
-            .doOnNext(updater::appendToken)
-            .doOnTerminate(updater::complete)
-            .blockLast();
+        try {
+            aiClient.startRetellingStream(sessionId, videoUrl, subtitles, userInstruction)
+                .doOnNext(updater::appendToken)
+                .doOnTerminate(updater::complete)
+                .blockLast();
+        } finally {
+            // Гарантированно останавливаем индикатор Typing, если AiClient кинул синхронное исключение до построения Flux
+            updater.complete();
+        }
     }
 
     private StreamingMessageUpdater startStreamingMessage(Long chatId) {
@@ -171,12 +176,7 @@ public class BotRetellingHandler {
         UUID sessionId = activeSession.get().getId();
 
         try {
-            StreamingMessageUpdater updater = startStreamingMessage(chatId);
-
-            aiClient.continueDialogStream(sessionId.toString(), userMessage)
-                .doOnNext(updater::appendToken)
-                .doOnTerminate(updater::complete)
-                .blockLast();
+            streamDialogAnswer(chatId, sessionId.toString(), userMessage);
         } catch (SubtitlesTooLongException | WebClientResponseException.BadRequest tooLongException) {
             log.warn("Сообщение пользователя превышает бюджет токенов. sessionId: {}", sessionId, tooLongException);
 
@@ -187,6 +187,20 @@ public class BotRetellingHandler {
 
             dialogDomainService.closeSession(sessionId);
             tgSender.send(chatId, MSG_CONTEXT_EXCEEDED);
+        }
+    }
+
+    private void streamDialogAnswer(Long chatId, String sessionId, String userMessage) {
+        StreamingMessageUpdater updater = startStreamingMessage(chatId);
+
+        try {
+            aiClient.continueDialogStream(sessionId, userMessage)
+                .doOnNext(updater::appendToken)
+                .doOnTerminate(updater::complete)
+                .blockLast();
+        } finally {
+            // Гарантированно останавливаем индикатор Typing, если AiClient кинул синхронное исключение до построения Flux
+            updater.complete();
         }
     }
 }
